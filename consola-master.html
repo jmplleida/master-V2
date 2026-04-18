@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0f">
+<title>PintorApp · Consola Master</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --card: #1a1a26;
+  --border: #2a2a3a;
+  --accent: #f5c800;
+  --accent2: #003d8f;
+  --green: #00e676;
+  --red: #ff4444;
+  --blue: #4fc3f7;
+  --text: #f0f0f8;
+  --muted: #6b6b8a;
+  --mono: 'JetBrains Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+/* LOGIN */
+#login-screen {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 30% 50%, #12122a 0%, #0a0a0f 70%);
+  padding: 24px;
+}
+.login-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 40px 32px;
+  width: 100%; max-width: 380px;
+  box-shadow: 0 0 60px rgba(245,200,0,0.08);
+}
+.login-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.login-logo .icon { font-size: 40px; display: block; margin-bottom: 10px; }
+.login-logo h1 { font-family: 'Syne', sans-serif; font-size: 22px; color: var(--accent); letter-spacing: -0.5px; }
+.login-logo p { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
+.login-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; display: block; }
+.login-input {
+  width: 100%; padding: 14px 16px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 10px; color: var(--text); font-size: 18px;
+  font-family: var(--mono); letter-spacing: 4px; text-align: center;
+  transition: border-color 0.2s;
+}
+.login-input:focus { outline: none; border-color: var(--accent); }
+.login-btn {
+  width: 100%; padding: 14px; margin-top: 16px;
+  background: var(--accent); color: #0a0a0f;
+  border: none; border-radius: 10px; font-size: 15px;
+  font-weight: 800; font-family: 'Syne', sans-serif;
+  cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.2s;
+}
+.login-btn:hover { opacity: 0.9; }
+.login-error { color: var(--red); font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+
+/* MAIN */
+#main { display: none; }
+
+/* TOP BAR */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; position: sticky; top: 0; z-index: 100;
+}
+.topbar-logo { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.topbar-logo span { font-size: 11px; color: var(--muted); font-family: var(--mono); font-weight: 400; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.topbar-user { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 7px; font-size: 12px; cursor: pointer; transition: color 0.2s; }
+.btn-logout:hover { color: var(--red); border-color: var(--red); }
+
+/* STATS BAR */
+.stats-bar {
+  display: flex; gap: 12px; padding: 16px 20px; overflow-x: auto;
+}
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 18px; min-width: 130px; flex-shrink: 0;
+}
+.stat-card .sv { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
+.stat-card .sl { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.sv.green { color: var(--green); }
+.sv.red { color: var(--red); }
+.sv.yellow { color: var(--accent); }
+.sv.blue { color: var(--blue); }
+
+/* CONTENT */
+.content { padding: 0 20px 40px; }
+.section-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 20px 0 12px;
+}
+.section-hdr h2 { font-family: 'Syne', sans-serif; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.btn-add {
+  background: var(--accent); color: #0a0a0f;
+  border: none; border-radius: 8px; padding: 8px 14px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+}
+
+/* PINTOR CARDS */
+.pintors-grid { display: flex; flex-direction: column; gap: 10px; }
+.pintor-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px;
+  transition: border-color 0.2s;
+  position: relative; overflow: hidden;
+}
+.pintor-card.active { border-left: 3px solid var(--green); }
+.pintor-card.inactive { border-left: 3px solid var(--red); opacity: 0.7; }
+.pintor-card.expired { border-left: 3px solid var(--accent); }
+.pc-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.pc-avatar {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800; color: white; flex-shrink: 0;
+}
+.pc-info { flex: 1; min-width: 0; }
+.pc-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.pc-status {
+  padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  font-family: var(--mono); flex-shrink: 0;
+}
+.pc-status.on { background: rgba(0,230,118,0.15); color: var(--green); }
+.pc-status.off { background: rgba(255,68,68,0.15); color: var(--red); }
+.pc-status.exp { background: rgba(245,200,0,0.15); color: var(--accent); }
+
+.pc-meta { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+.pc-meta-item { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.pc-meta-item span { color: var(--text); font-weight: 600; }
+
+.pc-msg {
+  background: var(--surface); border-radius: 8px; padding: 8px 10px;
+  font-size: 12px; color: var(--blue); margin-bottom: 12px;
+  border-left: 2px solid var(--blue); display: none;
+}
+.pc-msg.has-msg { display: block; }
+
+.pc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pc-btn {
+  padding: 7px 13px; border-radius: 8px; border: none; font-size: 12px;
+  font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.2s;
+}
+.pc-btn:hover { opacity: 0.8; }
+.pc-btn.toggle-on { background: rgba(0,230,118,0.15); color: var(--green); }
+.pc-btn.toggle-off { background: rgba(255,68,68,0.15); color: var(--red); }
+.pc-btn.msg-btn { background: rgba(79,195,247,0.15); color: var(--blue); }
+.pc-btn.edit-btn { background: var(--surface); color: var(--muted); }
+.pc-btn.del-btn { background: rgba(255,68,68,0.08); color: var(--red); }
+
+/* ADD MODAL */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 28px 24px;
+  width: 100%; max-width: 440px;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal h3 { font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 20px; color: var(--accent); }
+.mf { margin-bottom: 14px; }
+.mf label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 5px; }
+.mf input, .mf select, .mf textarea {
+  width: 100%; padding: 11px 13px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: 9px; color: var(--text); font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+}
+.mf input:focus, .mf select:focus, .mf textarea:focus { outline: none; border-color: var(--accent); }
+.mf textarea { min-height: 70px; resize: none; }
+.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+.btn-save {
+  flex: 2; padding: 13px; background: var(--accent); color: #0a0a0f;
+  border: none; border-radius: 10px; font-size: 14px; font-weight: 800;
+  cursor: pointer; font-family: 'Syne', sans-serif;
+}
+.btn-cancel {
+  flex: 1; padding: 13px; background: var(--surface); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 10px; font-size: 14px;
+  cursor: pointer;
+}
+
+/* MSG MODAL */
+.msg-modal {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 28px 24px;
+  width: 100%; max-width: 400px;
+}
+.msg-modal h3 { font-family: 'Syne', sans-serif; font-size: 16px; margin-bottom: 16px; color: var(--blue); }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text); padding: 10px 20px; border-radius: 20px;
+  font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s;
+  pointer-events: none; z-index: 9999; white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+#toast.show { opacity: 1; }
+
+/* Caducidad bar */
+.cad-bar { height: 4px; border-radius: 2px; background: var(--border); margin-top: 8px; overflow: hidden; }
+.cad-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="icon">🎛</span>
+      <h1>CONSOLA MASTER</h1>
+      <p>PintorApp · Panel de control</p>
+    </div>
+    <label class="login-label">Clave maestra</label>
+    <input type="password" class="login-input" id="clave-input" placeholder="••••••" maxlength="20"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">ENTRAR →</button>
+    <div class="login-error" id="login-err">❌ Clave incorrecta</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="topbar">
+    <div class="topbar-logo">
+      🎛 CONSOLA MASTER
+      <span>PintorApp</span>
+    </div>
+    <div class="topbar-right">
+      <div class="status-dot"></div>
+      <span class="topbar-user" id="topbar-time">--:--</span>
+      <button class="btn-logout" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="stats-bar"></div>
+
+  <div class="content">
+    <div class="section-hdr">
+      <h2>📋 Pintores registrados</h2>
+      <button class="btn-add" onclick="abrirModal()">＋ Nuevo pintor</button>
+    </div>
+    <div class="pintors-grid" id="pintors-grid">
+      <div style="text-align:center;color:var(--muted);padding:40px;font-size:13px;">
+        Cargando pintores...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-bg" id="modal-add">
+  <div class="modal">
+    <h3 id="modal-title">➕ Nuevo pintor</h3>
+    <div class="mf"><label>Nombre / Empresa</label><input type="text" id="m-nom" placeholder="Joan Pintors..."></div>
+    <div class="mf"><label>Teléfono</label><input type="tel" id="m-tel" placeholder="612 345 678"></div>
+    <div class="mf"><label>Población</label><input type="text" id="m-pob" placeholder="Lleida..."></div>
+    <div class="mf"><label>Especialidad</label>
+      <select id="m-esp">
+        <option>Pintura interior i exterior</option>
+        <option>Pintura industrial</option>
+        <option>Decoració i pintura</option>
+        <option>Impermeabilitzacions</option>
+        <option>Pintura i reformes</option>
+        <option>Pintor autònom</option>
+      </select>
+    </div>
+    <div class="mf"><label>Color de app</label>
+      <select id="m-color">
+        <option value="#2563eb">🔵 Azul</option>
+        <option value="#7c3aed">🟣 Morado</option>
+        <option value="#059669">🟢 Verde</option>
+        <option value="#dc2626">🔴 Rojo</option>
+        <option value="#d97706">🟡 Naranja</option>
+        <option value="#0891b2">🩵 Cyan</option>
+        <option value="#1e293b">⚫ Negro</option>
+      </select>
+    </div>
+    <div class="mf"><label>Caducidad (meses)</label>
+      <select id="m-cad">
+        <option value="3">3 meses</option>
+        <option value="6">6 meses</option>
+        <option value="12" selected>12 meses (1 año)</option>
+        <option value="24">24 meses (2 años)</option>
+        <option value="0">Sin caducidad</option>
+      </select>
+    </div>
+    <div class="mf"><label>Mensaje inicial (opcional)</label>
+      <textarea id="m-msg" placeholder="Bienvenido a tu app de presupuestos..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-save" onclick="guardarPintor()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MSG MODAL -->
+<div class="modal-bg" id="modal-msg">
+  <div class="msg-modal">
+    <h3>💬 Enviar mensaje al pintor</h3>
+    <div class="mf"><label>Pintor</label><input type="text" id="msg-nombre" disabled style="opacity:0.5"></div>
+    <div class="mf"><label>Mensaje</label>
+      <textarea id="msg-texto" placeholder="Escribe un aviso, oferta o recordatorio..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cerrarMsgModal()">Cancelar</button>
+      <button class="btn-save" style="background:var(--blue);color:#0a0a0f" onclick="enviarMensaje()">📤 Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, get, onValue, remove, update }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ── CONFIG FIREBASE (usa tu proyecto pintorapp-6d480) ────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBsnQ3pRx0AS0n3AEr0jp8atCbVlQIuyYQ",
+  authDomain: "pintorapp-6d480.firebaseapp.com",
+  databaseURL: "https://pintorapp-6d480-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "pintorapp-6d480",
+  storageBucket: "pintorapp-6d480.appspot.com",
+  messagingSenderId: "798799179968",
+  appId: "1:798799179968:web:14ab31b03e17b8b041bd25"
+};
+
+const MASTER_KEY = "Robert2024!";  // ← CAMBIA ESTO
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const PINTORS_REF = 'pintorapp/pintores';
+
+window._db  = db;
+window._ref = ref;
+window._set = set;
+window._get = get;
+window._onValue = onValue;
+window._remove = remove;
+window._update = update;
+window._PINTORS_REF = PINTORS_REF;
+window._firebase_ready = true;
+window.dispatchEvent(new Event('firebase_ready'));
+</script>
+
+<script>
+var pintores = {};
+var editingId = null;
+var msgTargetId = null;
+
+// ─── CLOCK ───────────────────────────────────────────────────────────────────
+setInterval(function(){
+  var now = new Date();
+  var t = document.getElementById('topbar-time');
+  if(t) t.textContent = now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+}, 1000);
+
+// ─── LOGIN ───────────────────────────────────────────────────────────────────
+function doLogin() {
+  var val = document.getElementById('clave-input').value;
+  if (val === window.MASTER_KEY || val === 'Robert2024!') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    initApp();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('clave-input').value = '';
+  }
+}
+window.doLogin = doLogin;
+
+function doLogout() {
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('clave-input').value = '';
+}
+window.doLogout = doLogout;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function initApp() {
+  if (!window._firebase_ready) {
+    window.addEventListener('firebase_ready', initApp);
+    return;
+  }
+  var dbRef = window._ref(window._db, window._PINTORS_REF);
+  window._onValue(dbRef, function(snap) {
+    pintores = snap.val() || {};
+    renderAll();
+  });
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderStats();
+  renderPintors();
+}
+
+function renderStats() {
+  var total = Object.keys(pintores).length;
+  var activos = 0, inactivos = 0, caducados = 0;
+  Object.values(pintores).forEach(function(p) {
+    var st = getStatus(p);
+    if (st === 'active') activos++;
+    else if (st === 'expired') caducados++;
+    else inactivos++;
+  });
+  var sb = document.getElementById('stats-bar');
+  sb.innerHTML = [
+    ['<span class="sv yellow">'+total+'</span>', 'Total pintores'],
+    ['<span class="sv green">'+activos+'</span>', 'Activos'],
+    ['<span class="sv red">'+inactivos+'</span>', 'Desactivados'],
+    ['<span class="sv blue">'+caducados+'</span>', 'Caducados'],
+  ].map(function(s){ return '<div class="stat-card">'+s[0]+'<div class="sl">'+s[1]+'</div></div>'; }).join('');
+}
+
+function getStatus(p) {
+  if (!p.activo) return 'inactive';
+  if (p.caducidad_meses > 0) {
+    var created = new Date(p.created_at);
+    var expiry = new Date(created);
+    expiry.setMonth(expiry.getMonth() + p.caducidad_meses);
+    if (new Date() > expiry) return 'expired';
+  }
+  return 'active';
+}
+
+function getExpiry(p) {
+  if (!p.caducidad_meses || p.caducidad_meses == 0) return null;
+  var created = new Date(p.created_at);
+  var expiry = new Date(created);
+  expiry.setMonth(expiry.getMonth() + parseInt(p.caducidad_meses));
+  return expiry;
+}
+
+function renderPintors() {
+  var grid = document.getElementById('pintors-grid');
+  var keys = Object.keys(pintores);
+  if (keys.length === 0) {
+    grid.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;font-size:13px;">No hay pintores registrados aún.<br>Pulsa "+ Nuevo pintor" para añadir el primero.</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  keys.forEach(function(id) {
+    var p = pintores[id];
+    var st = getStatus(p);
+    var card = document.createElement('div');
+    card.className = 'pintor-card ' + (st === 'active' ? 'active' : st === 'expired' ? 'expired' : 'inactive');
+
+    var initials = (p.nom||'?').split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase();
+    var statusLabel = st === 'active' ? 'ACTIVO' : st === 'expired' ? 'CADUCADO' : 'INACTIVO';
+    var statusClass = st === 'active' ? 'on' : st === 'expired' ? 'exp' : 'off';
+
+    // Expiry progress
+    var expBar = '';
+    var expiry = getExpiry(p);
+    if (expiry) {
+      var created = new Date(p.created_at);
+      var total = expiry - created;
+      var elapsed = new Date() - created;
+      var pct = Math.min(100, Math.max(0, (elapsed/total)*100));
+      var remaining = Math.max(0, Math.ceil((expiry - new Date()) / (1000*60*60*24)));
+      var barColor = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--accent)' : 'var(--green)';
+      expBar = '<div class="cad-bar"><div class="cad-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>';
+      expBar += '<div style="font-size:10px;color:var(--muted);margin-top:3px;font-family:var(--mono)">'+
+        (remaining > 0 ? remaining+' días restantes' : 'CADUCADO')+'</div>';
+    }
+
+    var msgHtml = p.mensaje ? '<div class="pc-msg has-msg">💬 '+p.mensaje+'</div>' : '<div class="pc-msg"></div>';
+
+    card.innerHTML = `
+      <div class="pc-top">
+        <div class="pc-avatar" style="background:${p.color||'#2563eb'}">${initials}</div>
+        <div class="pc-info">
+          <div class="pc-name">${p.nom||'Sin nombre'}</div>
+          <div class="pc-sub">${p.esp||'Pintor'} · ${p.pob||'—'}</div>
+        </div>
+        <div class="pc-status ${statusClass}">${statusLabel}</div>
+      </div>
+      <div class="pc-meta">
+        <div class="pc-meta-item">📞 <span>${p.tel||'—'}</span></div>
+        <div class="pc-meta-item">📅 Alta: <span>${p.created_at ? new Date(p.created_at).toLocaleDateString('es-ES') : '—'}</span></div>
+        <div class="pc-meta-item">⏱ Caducidad: <span>${p.caducidad_meses > 0 ? p.caducidad_meses+' meses' : 'Sin límite'}</span></div>
+        <div class="pc-meta-item">📄 Presups: <span>${p.num_presupuestos||0}</span></div>
+      </div>
+      ${expBar}
+      ${msgHtml}
+      <div class="pc-actions">
+        ${st === 'active'
+          ? `<button class="pc-btn toggle-off" data-id="${id}">⏸ Desactivar</button>`
+          : `<button class="pc-btn toggle-on" data-id="${id}">▶ Activar</button>`}
+        <button class="pc-btn msg-btn" data-id="${id}">💬 Mensaje</button>
+        <button class="pc-btn edit-btn" data-id="${id}">✏️ Editar</button>
+        <button class="pc-btn del-btn" data-id="${id}">🗑 Eliminar</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  // Events
+  grid.querySelectorAll('.toggle-on,.toggle-off').forEach(function(btn){
+    btn.addEventListener('click', function(){ togglePintor(this.getAttribute('data-id')); });
+  });
+  grid.querySelectorAll('.msg-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ abrirMsgModal(this.getAttribute('data-id')); });
+  });
+  grid.querySelectorAll('.edit-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ editarPintor(this.getAttribute('data-id')); });
+  });
+  grid.querySelectorAll('.del-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ eliminarPintor(this.getAttribute('data-id')); });
+  });
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────────────────────
+function togglePintor(id) {
+  var p = pintores[id];
+  var newVal = !p.activo;
+  window._update(window._ref(window._db, window._PINTORS_REF+'/'+id), { activo: newVal });
+  showToast(newVal ? '✅ Pintor activado' : '⏸ Pintor desactivado');
+}
+window.togglePintor = togglePintor;
+
+function abrirModal(id) {
+  editingId = id || null;
+  document.getElementById('modal-title').textContent = id ? '✏️ Editar pintor' : '➕ Nuevo pintor';
+  if (id && pintores[id]) {
+    var p = pintores[id];
+    document.getElementById('m-nom').value = p.nom||'';
+    document.getElementById('m-tel').value = p.tel||'';
+    document.getElementById('m-pob').value = p.pob||'';
+    document.getElementById('m-esp').value = p.esp||'';
+    document.getElementById('m-color').value = p.color||'#2563eb';
+    document.getElementById('m-cad').value = p.caducidad_meses||12;
+    document.getElementById('m-msg').value = p.mensaje||'';
+  } else {
+    document.getElementById('m-nom').value = '';
+    document.getElementById('m-tel').value = '';
+    document.getElementById('m-pob').value = '';
+    document.getElementById('m-msg').value = '';
+  }
+  document.getElementById('modal-add').classList.add('open');
+}
+window.abrirModal = abrirModal;
+
+function cerrarModal() { document.getElementById('modal-add').classList.remove('open'); }
+window.cerrarModal = cerrarModal;
+
+function guardarPintor() {
+  var nom = document.getElementById('m-nom').value.trim();
+  if (!nom) { showToast('⚠️ Escribe el nombre'); return; }
+  var id = editingId || ('pintor_' + Date.now());
+  var existing = (editingId && pintores[editingId]) || {};
+  var data = {
+    nom: nom,
+    tel: document.getElementById('m-tel').value.trim(),
+    pob: document.getElementById('m-pob').value.trim(),
+    esp: document.getElementById('m-esp').value,
+    color: document.getElementById('m-color').value,
+    caducidad_meses: parseInt(document.getElementById('m-cad').value),
+    mensaje: document.getElementById('m-msg').value.trim(),
+    activo: existing.activo !== undefined ? existing.activo : true,
+    created_at: existing.created_at || new Date().toISOString(),
+    num_presupuestos: existing.num_presupuestos || 0
+  };
+  window._set(window._ref(window._db, window._PINTORS_REF+'/'+id), data);
+  cerrarModal();
+  showToast(editingId ? '✅ Pintor actualizado' : '✅ Pintor añadido');
+}
+window.guardarPintor = guardarPintor;
+
+function editarPintor(id) { abrirModal(id); }
+window.editarPintor = editarPintor;
+
+function eliminarPintor(id) {
+  var p = pintores[id];
+  if (!confirm('¿Eliminar a ' + (p ? p.nom : id) + '? Esta acción no se puede deshacer.')) return;
+  window._remove(window._ref(window._db, window._PINTORS_REF+'/'+id));
+  showToast('🗑 Pintor eliminado');
+}
+window.eliminarPintor = eliminarPintor;
+
+function abrirMsgModal(id) {
+  msgTargetId = id;
+  var p = pintores[id];
+  document.getElementById('msg-nombre').value = p ? p.nom : id;
+  document.getElementById('msg-texto').value = p ? (p.mensaje||'') : '';
+  document.getElementById('modal-msg').classList.add('open');
+}
+window.abrirMsgModal = abrirMsgModal;
+
+function cerrarMsgModal() { document.getElementById('modal-msg').classList.remove('open'); }
+window.cerrarMsgModal = cerrarMsgModal;
+
+function enviarMensaje() {
+  var txt = document.getElementById('msg-texto').value.trim();
+  window._update(window._ref(window._db, window._PINTORS_REF+'/'+msgTargetId), { mensaje: txt });
+  cerrarMsgModal();
+  showToast(txt ? '💬 Mensaje enviado' : '🗑 Mensaje eliminado');
+}
+window.enviarMensaje = enviarMensaje;
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+
+// ─── MASTER KEY disponible para login ────────────────────────────────────────
+window.MASTER_KEY = 'Robert2024!';
+</script>
+</body>
+</html>
