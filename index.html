@@ -421,12 +421,10 @@ function doLogout() {
   document.getElementById('login-err').style.display = 'none';
 }
 </script>
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, get, onValue, remove, update }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-
-// ── CONFIG FIREBASE (usa tu proyecto pintorapp-6d480) ────────────────────────────
+<!-- Firebase Compat (no módulos) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyBsnQ3pRx0AS0n3AEr0jp8atCbVlQIuyYQ",
   authDomain: "pintorapp-6d480.firebaseapp.com",
@@ -436,24 +434,22 @@ const firebaseConfig = {
   messagingSenderId: "798799179968",
   appId: "1:798799179968:web:14ab31b03e17b8b041bd25"
 };
-
-const MASTER_KEY = "Robert2024!";  // ← CAMBIA ESTO
-
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
-const PINTORS_REF = 'pintorapp/pintores';
-
-window._db  = db;
-window._ref = ref;
-window._set = set;
-window._get = get;
-window._onValue = onValue;
-window._remove = remove;
-window._update = update;
-window._PINTORS_REF = PINTORS_REF;
+firebase.initializeApp(firebaseConfig);
+var _db = firebase.database();
+window._db = _db;
+window._ref = function(db, path) { return db.ref(path); };
+window._set = function(ref, data) { return ref.set(data); };
+window._get = function(ref) { return ref.get(); };
+window._onValue = function(ref, cb) { return ref.on('value', cb); };
+window._remove = function(ref) { return ref.remove(); };
+window._update = function(ref, data) { return ref.update(data); };
+window._PINTORS_REF = 'pintorapp/pintores';
 window._firebase_ready = true;
-window.initApp = initApp;
-window.dispatchEvent(new Event('firebase_ready'));
+setTimeout(function(){
+  window.initApp = initApp;
+  initApp();
+  initPacks();
+}, 100);
 </script>
 
 <script>
@@ -491,13 +487,8 @@ function doLogout() {
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function initApp() {
-  if (!window._firebase_ready) {
-    window.addEventListener('firebase_ready', initApp);
-    return;
-  }
-  initPacks();
-  var dbRef = window._ref(window._db, window._PINTORS_REF);
-  window._onValue(dbRef, function(snap) {
+  var dbRef = window._db.ref(window._PINTORS_REF);
+  dbRef.on('value', function(snap) {
     pintores = snap.val() || {};
     renderAll();
   });
@@ -628,7 +619,7 @@ function renderPintors() {
 function togglePintor(id) {
   var p = pintores[id];
   var newVal = !p.activo;
-  window._update(window._ref(window._db, window._PINTORS_REF+'/'+id), { activo: newVal });
+  window._db.ref(window._PINTORS_REF+'/'+id).update({ activo: newVal });
   showToast(newVal ? '✅ Pintor activado' : '⏸ Pintor desactivado');
 }
 window.togglePintor = togglePintor;
@@ -675,7 +666,7 @@ function guardarPintor() {
     created_at: existing.created_at || new Date().toISOString(),
     num_presupuestos: existing.num_presupuestos || 0
   };
-  window._set(window._ref(window._db, window._PINTORS_REF+'/'+id), data);
+  window._db.ref(window._PINTORS_REF+'/'+id).set(data);
   cerrarModal();
   showToast(editingId ? '✅ Pintor actualizado' : '✅ Pintor añadido');
 }
@@ -687,7 +678,7 @@ window.editarPintor = editarPintor;
 function eliminarPintor(id) {
   var p = pintores[id];
   if (!confirm('¿Eliminar a ' + (p ? p.nom : id) + '? Esta acción no se puede deshacer.')) return;
-  window._remove(window._ref(window._db, window._PINTORS_REF+'/'+id));
+  window._db.ref(window._PINTORS_REF+'/'+id).remove();
   showToast('🗑 Pintor eliminado');
 }
 window.eliminarPintor = eliminarPintor;
@@ -706,7 +697,7 @@ window.cerrarMsgModal = cerrarMsgModal;
 
 function enviarMensaje() {
   var txt = document.getElementById('msg-texto').value.trim();
-  window._update(window._ref(window._db, window._PINTORS_REF+'/'+msgTargetId), { mensaje: txt });
+  window._db.ref(window._PINTORS_REF+'/'+msgTargetId).update({ mensaje: txt });
   cerrarMsgModal();
   showToast(txt ? '💬 Mensaje enviado' : '🗑 Mensaje eliminado');
 }
@@ -733,8 +724,8 @@ var WHATSAPP_NUM = '34609321585';
 var packs = {};
 
 function initPacks() {
-  var packsRef = window._ref(window._db, 'pintorapp/packs');
-  window._onValue(packsRef, function(snap) {
+  var packsRef = window._db.ref('pintorapp/packs');
+  packsRef.on('value', function(snap) {
     packs = snap.val() || {};
     renderPackStats();
   });
@@ -792,7 +783,7 @@ function generarPack() {
     codigos: codigos
   };
   
-  window._set(window._ref(window._db, 'pintorapp/packs/' + packId), packData);
+  window._db.ref('pintorapp/packs/' + packId).set(packData);
   cerrarModalPack();
   showToast('✅ Pack generado con ' + num + ' códigos para ' + cliente);
   switchTab('packs');
@@ -949,7 +940,7 @@ window.enviarWhatsApp = enviarWhatsApp;
 function eliminarPack(packId) {
   var p = packs[packId];
   if (!confirm('¿Eliminar el pack de ' + (p ? p.cliente : packId) + '?')) return;
-  window._remove(window._ref(window._db, 'pintorapp/packs/' + packId));
+  window._db.ref('pintorapp/packs/' + packId).remove();
   showToast('🗑 Pack eliminado');
   renderPacks();
 }
@@ -1000,4 +991,12 @@ window.MASTER_KEY = 'NachiDacia2342';
     </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="cerrarModalCode()">Cerrar</button>
-      <button class="btn-save" onclick="c
+      <button class="btn-save" onclick="copiarCode()" style="background:var(--green);color:#0a0a0f;">
+        📋 Copiar código
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
