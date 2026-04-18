@@ -111,6 +111,63 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   font-size: 13px; font-weight: 700; cursor: pointer;
 }
 
+
+/* PACK SYSTEM */
+.pack-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px; margin-bottom: 10px;
+}
+.pack-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.pack-badge {
+  background: var(--accent); color: #0a0a0f;
+  border-radius: 8px; padding: 4px 10px;
+  font-size: 11px; font-weight: 800; font-family: var(--mono);
+}
+.pack-name { font-weight: 700; font-size: 15px; flex: 1; }
+.pack-progress { margin-bottom: 10px; }
+.pack-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 4px 0; }
+.pack-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.pack-codes { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.code-chip {
+  padding: 5px 10px; border-radius: 8px; font-size: 11px;
+  font-family: var(--mono); font-weight: 700; cursor: pointer;
+  border: 1px solid var(--border); transition: opacity 0.2s;
+}
+.code-chip.used { background: rgba(255,68,68,0.1); color: var(--red); border-color: var(--red); }
+.code-chip.active { background: rgba(0,230,118,0.1); color: var(--green); border-color: var(--green); }
+.code-chip.expired { background: rgba(245,200,0,0.1); color: var(--accent); border-color: var(--accent); }
+.code-chip.free { background: var(--surface); color: var(--muted); }
+.pack-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-gen { 
+  padding: 7px 14px; border-radius: 8px; border: none;
+  background: var(--accent); color: #0a0a0f;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-copy-all {
+  padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-del-pack {
+  padding: 7px 14px; border-radius: 8px; border: none;
+  background: rgba(255,68,68,0.1); color: var(--red);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.tab-bar {
+  display: flex; gap: 4px; margin-bottom: 16px;
+  background: var(--surface); border-radius: 12px; padding: 4px;
+}
+.tab-btn {
+  flex: 1; padding: 10px; border: none; border-radius: 9px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: background 0.2s;
+  background: transparent; color: var(--muted);
+}
+.tab-btn.active { background: var(--card); color: var(--text); }
+
 /* PINTOR CARDS */
 .pintors-grid { display: flex; flex-direction: column; gap: 10px; }
 .pintor-card {
@@ -260,6 +317,14 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
   <div class="stats-bar" id="stats-bar"></div>
 
   <div class="content">
+    <!-- TAB BAR -->
+    <div class="tab-bar" style="margin-top:16px;">
+      <button class="tab-btn active" id="tab-pintores" onclick="switchTab('pintores')">🎨 Pintores</button>
+      <button class="tab-btn" id="tab-packs" onclick="switchTab('packs')">🎟 Packs de licencias</button>
+    </div>
+
+    <!-- PINTORES TAB -->
+    <div id="view-pintores">
     <div class="section-hdr">
       <h2>📋 Pintores registrados</h2>
       <button class="btn-add" onclick="abrirModal()">＋ Nuevo pintor</button>
@@ -408,6 +473,7 @@ function initApp() {
     window.addEventListener('firebase_ready', initApp);
     return;
   }
+  initPacks();
   var dbRef = window._ref(window._db, window._PINTORS_REF);
   window._onValue(dbRef, function(snap) {
     pintores = snap.val() || {};
@@ -630,8 +696,293 @@ function showToast(msg) {
   setTimeout(function(){ t.classList.remove('show'); }, 2800);
 }
 
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('view-pintores').style.display = tab === 'pintores' ? 'block' : 'none';
+  document.getElementById('view-packs').style.display = tab === 'packs' ? 'block' : 'none';
+  document.getElementById('tab-pintores').className = 'tab-btn' + (tab === 'pintores' ? ' active' : '');
+  document.getElementById('tab-packs').className = 'tab-btn' + (tab === 'packs' ? ' active' : '');
+  if (tab === 'packs') renderPacks();
+}
+
+// ─── PACKS ────────────────────────────────────────────────────────────────────
+var WHATSAPP_NUM = '34609321585';
+var packs = {};
+
+function initPacks() {
+  var packsRef = window._ref(window._db, 'pintorapp/packs');
+  window._onValue(packsRef, function(snap) {
+    packs = snap.val() || {};
+    renderPackStats();
+  });
+}
+
+function generarCodigo() {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  var code = '';
+  for (var i = 0; i < 10; i++) {
+    if (i === 4 || i === 8) code += '-';
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+function abrirModalPack() {
+  document.getElementById('p-cliente').value = '';
+  document.getElementById('p-tel').value = '';
+  document.getElementById('modal-pack').classList.add('open');
+}
+window.abrirModalPack = abrirModalPack;
+
+function cerrarModalPack() {
+  document.getElementById('modal-pack').classList.remove('open');
+}
+window.cerrarModalPack = cerrarModalPack;
+
+function generarPack() {
+  var cliente = document.getElementById('p-cliente').value.trim();
+  if (!cliente) { showToast('⚠️ Escribe el nombre del cliente'); return; }
+  var num = parseInt(document.getElementById('p-num').value);
+  var dur = parseInt(document.getElementById('p-dur').value);
+  var tel = document.getElementById('p-tel').value.trim();
+  
+  var packId = 'pack_' + Date.now();
+  var codigos = {};
+  for (var i = 0; i < num; i++) {
+    var code = generarCodigo();
+    codigos[code] = {
+      estado: 'libre',
+      creado: new Date().toISOString(),
+      duracion_meses: dur,
+      pintor_id: null,
+      activado: null,
+      expira: null
+    };
+  }
+  
+  var packData = {
+    cliente: cliente,
+    tel: tel,
+    num_total: num,
+    duracion_meses: dur,
+    creado: new Date().toISOString(),
+    codigos: codigos
+  };
+  
+  window._set(window._ref(window._db, 'pintorapp/packs/' + packId), packData);
+  cerrarModalPack();
+  showToast('✅ Pack generado con ' + num + ' códigos para ' + cliente);
+  switchTab('packs');
+}
+window.generarPack = generarPack;
+
+function renderPackStats() {
+  var total_packs = Object.keys(packs).length;
+  var total_codigos = 0, usados = 0, libres = 0, expirados = 0;
+  Object.values(packs).forEach(function(p) {
+    if (!p.codigos) return;
+    Object.values(p.codigos).forEach(function(c) {
+      total_codigos++;
+      if (c.estado === 'activo') usados++;
+      else if (c.estado === 'expirado') expirados++;
+      else libres++;
+    });
+  });
+  var sb = document.getElementById('packs-stats');
+  if (!sb) return;
+  sb.innerHTML = [
+    ['<span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--accent)">'+total_packs+'</span>', 'Packs activos'],
+    ['<span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--green)">'+libres+'</span>', 'Códigos libres'],
+    ['<span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--blue)">'+usados+'</span>', 'En uso'],
+    ['<span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--red)">'+expirados+'</span>', 'Expirados'],
+  ].map(function(s){ return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;min-width:110px;">'+s[0]+'<div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;">'+s[1]+'</div></div>'; }).join('');
+}
+
+function renderPacks() {
+  renderPackStats();
+  var grid = document.getElementById('packs-grid');
+  if (!grid) return;
+  var keys = Object.keys(packs);
+  if (keys.length === 0) {
+    grid.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;font-size:13px;">No hay packs creados aún.<br>Pulsa "+ Nuevo pack" para crear el primero.</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  keys.forEach(function(packId) {
+    var p = packs[packId];
+    if (!p.codigos) return;
+    var codigos = p.codigos;
+    var ckeys = Object.keys(codigos);
+    var libres = ckeys.filter(function(k){ return codigos[k].estado === 'libre'; }).length;
+    var usados = ckeys.filter(function(k){ return codigos[k].estado === 'activo'; }).length;
+    var expirados = ckeys.filter(function(k){ return codigos[k].estado === 'expirado'; }).length;
+    var pct_usado = Math.round((usados + expirados) / ckeys.length * 100);
+    var bar_color = pct_usado >= 90 ? 'var(--red)' : pct_usado >= 60 ? 'var(--accent)' : 'var(--green)';
+
+    var div = document.createElement('div');
+    div.className = 'pack-card';
+    
+    // Header
+    var hdr = '<div class="pack-header">';
+    hdr += '<div class="pack-badge">🎟 PACK</div>';
+    hdr += '<div class="pack-name">' + p.cliente + '</div>';
+    if (p.tel) hdr += '<div style="font-size:11px;color:var(--muted);font-family:var(--mono);">' + p.tel + '</div>';
+    hdr += '</div>';
+    
+    // Progress
+    var prog = '<div class="pack-progress">';
+    prog += '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;">';
+    prog += '<span>Licencias usadas: <strong style="color:var(--text)">' + (usados+expirados) + ' / ' + ckeys.length + '</strong></span>';
+    prog += '<span>' + p.duracion_meses + ' meses/licencia</span></div>';
+    prog += '<div class="pack-bar"><div class="pack-fill" style="width:'+pct_usado+'%;background:'+bar_color+'"></div></div>';
+    if (libres === 0) {
+      prog += '<div style="font-size:11px;color:var(--red);margin-top:4px;font-weight:700;">⚠️ Pack agotado — contactar para renovar</div>';
+    } else {
+      prog += '<div style="font-size:11px;color:var(--muted);margin-top:4px;">'+libres+' códigos disponibles</div>';
+    }
+    prog += '</div>';
+    
+    // Codes
+    var codes_html = '<div class="pack-codes">';
+    ckeys.forEach(function(code) {
+      var c = codigos[code];
+      var cls = c.estado === 'activo' ? 'active' : c.estado === 'expirado' ? 'expired' : 'free';
+      var icon = c.estado === 'activo' ? '✓' : c.estado === 'expirado' ? '⏰' : '○';
+      codes_html += '<span class="code-chip ' + cls + '" onclick="verCodigo('' + packId + '','' + code + '')" title="Ver detalles">' + icon + ' ' + code + '</span>';
+    });
+    codes_html += '</div>';
+    
+    // Actions
+    var acts = '<div class="pack-actions">';
+    acts += '<button class="btn-gen" onclick="copiarTodos('' + packId + '')">📋 Copiar libres</button>';
+    acts += '<button class="btn-gen" style="background:var(--blue);color:white;" onclick="enviarWhatsApp('' + packId + '')">📱 Enviar WhatsApp</button>';
+    acts += '<button class="btn-copy-all" onclick="renderPacks()">🔄 Actualizar</button>';
+    acts += '<button class="btn-del-pack" onclick="eliminarPack('' + packId + '')">🗑 Eliminar</button>';
+    acts += '</div>';
+    
+    div.innerHTML = hdr + prog + codes_html + acts;
+    grid.appendChild(div);
+  });
+}
+
+function verCodigo(packId, code) {
+  var c = packs[packId].codigos[code];
+  document.getElementById('code-display').textContent = code;
+  var info = 'Estado: ' + c.estado.toUpperCase();
+  if (c.activado) info += ' · Activado: ' + new Date(c.activado).toLocaleDateString('es-ES');
+  if (c.expira) info += ' · Expira: ' + new Date(c.expira).toLocaleDateString('es-ES');
+  info += ' · Duración: ' + c.duracion_meses + ' meses';
+  document.getElementById('code-info').textContent = info;
+  window._currentCode = code;
+  document.getElementById('modal-code').classList.add('open');
+}
+window.verCodigo = verCodigo;
+
+function cerrarModalCode() { document.getElementById('modal-code').classList.remove('open'); }
+window.cerrarModalCode = cerrarModalCode;
+
+function copiarCode() {
+  navigator.clipboard.writeText(window._currentCode || '').then(function() {
+    showToast('📋 Código copiado: ' + window._currentCode);
+    cerrarModalCode();
+  });
+}
+window.copiarCode = copiarCode;
+
+function copiarTodos(packId) {
+  var codigos = packs[packId].codigos;
+  var libres = Object.keys(codigos).filter(function(k){ return codigos[k].estado === 'libre'; });
+  if (!libres.length) { showToast('⚠️ No quedan códigos libres'); return; }
+  var texto = '🎟 CÓDIGOS PINTORAPP — ' + packs[packId].cliente + '\n';
+  texto += '━━━━━━━━━━━━━━━━━━━━\n';
+  libres.forEach(function(c, i) { texto += (i+1) + '. ' + c + '\n'; });
+  texto += '━━━━━━━━━━━━━━━━━━━━\n';
+  texto += 'Válidos ' + packs[packId].duracion_meses + ' meses · Consultar precio: wa.me/' + WHATSAPP_NUM;
+  navigator.clipboard.writeText(texto).then(function() {
+    showToast('📋 ' + libres.length + ' códigos copiados');
+  });
+}
+window.copiarTodos = copiarTodos;
+
+function enviarWhatsApp(packId) {
+  var p = packs[packId];
+  var codigos = p.codigos;
+  var libres = Object.keys(codigos).filter(function(k){ return codigos[k].estado === 'libre'; });
+  if (!libres.length) { showToast('⚠️ No quedan códigos libres'); return; }
+  var msg = '🎨 *PINTORAPP — Codis d\'activació*\n';
+  msg += '━━━━━━━━━━━━━━━━━━━━\n';
+  msg += '🏪 Client: *' + p.cliente + '*\n';
+  msg += '🎟 Pack: ' + libres.length + ' llicències\n';
+  msg += '⏱ Durada: ' + p.duracion_meses + ' mesos\n\n';
+  libres.forEach(function(c, i) { msg += (i+1) + '. `' + c + '`\n'; });
+  msg += '\n━━━━━━━━━━━━━━━━━━━━\n';
+  msg += '❓ Consultar preu: wa.me/' + WHATSAPP_NUM;
+  var tel = p.tel ? p.tel.replace(/[^0-9]/g,'') : '';
+  var url = 'https://wa.me/' + (tel ? '34'+tel : '') + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+window.enviarWhatsApp = enviarWhatsApp;
+
+function eliminarPack(packId) {
+  var p = packs[packId];
+  if (!confirm('¿Eliminar el pack de ' + (p ? p.cliente : packId) + '?')) return;
+  window._remove(window._ref(window._db, 'pintorapp/packs/' + packId));
+  showToast('🗑 Pack eliminado');
+  renderPacks();
+}
+window.eliminarPack = eliminarPack;
+
 // ─── MASTER KEY disponible para login ────────────────────────────────────────
 window.MASTER_KEY = 'NachiDacia2342';
 </script>
+
+<!-- PACK MODAL -->
+<div class="modal-bg" id="modal-pack">
+  <div class="modal">
+    <h3 id="pack-modal-title" style="color:var(--accent);">🎟 Nuevo pack de licencias</h3>
+    <div class="mf"><label>Cliente (tienda / empresa)</label>
+      <input type="text" id="p-cliente" placeholder="La Botiga del Robert..."></div>
+    <div class="mf"><label>Teléfono / WhatsApp del cliente</label>
+      <input type="tel" id="p-tel" placeholder="973 000 392"></div>
+    <div class="mf"><label>Número de licencias</label>
+      <select id="p-num">
+        <option value="10">Pack 10 licencias</option>
+        <option value="20">Pack 20 licencias</option>
+        <option value="30">Pack 30 licencias</option>
+      </select>
+    </div>
+    <div class="mf"><label>Duración por licencia</label>
+      <select id="p-dur">
+        <option value="12">12 meses (1 año)</option>
+        <option value="6">6 meses</option>
+        <option value="24">24 meses (2 años)</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cerrarModalPack()">Cancelar</button>
+      <button class="btn-save" onclick="generarPack()">🎟 Generar códigos</button>
+    </div>
+  </div>
+</div>
+
+<!-- CODE DETAIL MODAL -->
+<div class="modal-bg" id="modal-code">
+  <div class="modal" style="max-width:360px;">
+    <h3 style="color:var(--green);">📋 Código de activación</h3>
+    <div style="background:var(--surface);border-radius:12px;padding:20px;text-align:center;margin:16px 0;">
+      <div id="code-display" style="font-family:var(--mono);font-size:22px;font-weight:800;
+        color:var(--accent);letter-spacing:3px;margin-bottom:8px;"></div>
+      <div id="code-info" style="font-size:12px;color:var(--muted);"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cerrarModalCode()">Cerrar</button>
+      <button class="btn-save" onclick="copiarCode()" style="background:var(--green);color:#0a0a0f;">
+        📋 Copiar código
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
