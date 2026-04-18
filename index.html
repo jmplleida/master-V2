@@ -400,6 +400,28 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 </div>
 
 <!-- Firebase -->
+<script>
+// Login independiente - fuera del módulo Firebase
+function doLogin() {
+  var val = document.getElementById('clave-input').value.trim();
+  if (val === 'NachiDacia2342') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    if (typeof initApp === 'function') initApp();
+    else window.addEventListener('firebase_ready', function(){ initApp(); });
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('clave-input').value = '';
+    document.getElementById('clave-input').focus();
+  }
+}
+function doLogout() {
+  document.getElementById('main').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('clave-input').value = '';
+  document.getElementById('login-err').style.display = 'none';
+}
+</script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, set, get, onValue, remove, update }
@@ -458,14 +480,14 @@ function doLogin() {
     document.getElementById('clave-input').value = '';
   }
 }
-window.doLogin = doLogin;
+// doLogin handled by global script
 
 function doLogout() {
   document.getElementById('main').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('clave-input').value = '';
 }
-window.doLogout = doLogout;
+// doLogout handled by global script
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function initApp() {
