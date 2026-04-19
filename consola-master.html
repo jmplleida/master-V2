@@ -3,986 +3,448 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0a0a0f">
 <title>PintorApp · Consola Master</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-:root {
-  --bg: #0a0a0f;
-  --surface: #12121a;
-  --card: #1a1a26;
-  --border: #2a2a3a;
-  --accent: #f5c800;
-  --accent2: #003d8f;
-  --green: #00e676;
-  --red: #ff4444;
-  --blue: #4fc3f7;
-  --text: #f0f0f8;
-  --muted: #6b6b8a;
-  --mono: 'JetBrains Mono', monospace;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
-
-/* LOGIN */
-#login-screen {
-  min-height: 100vh;
-  display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(ellipse at 30% 50%, #12122a 0%, #0a0a0f 70%);
-  padding: 24px;
-}
-.login-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 20px; padding: 40px 32px;
-  width: 100%; max-width: 380px;
-  box-shadow: 0 0 60px rgba(245,200,0,0.08);
-}
-.login-logo {
-  text-align: center; margin-bottom: 32px;
-}
-.login-logo .icon { font-size: 40px; display: block; margin-bottom: 10px; }
-.login-logo h1 { font-family: 'Syne', sans-serif; font-size: 22px; color: var(--accent); letter-spacing: -0.5px; }
-.login-logo p { font-size: 12px; color: var(--muted); margin-top: 4px; font-family: var(--mono); }
-.login-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; display: block; }
-.login-input {
-  width: 100%; padding: 14px 16px;
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 10px; color: var(--text); font-size: 18px;
-  font-family: var(--mono); letter-spacing: 4px; text-align: center;
-  transition: border-color 0.2s;
-}
-.login-input:focus { outline: none; border-color: var(--accent); }
-.login-btn {
-  width: 100%; padding: 14px; margin-top: 16px;
-  background: var(--accent); color: #0a0a0f;
-  border: none; border-radius: 10px; font-size: 15px;
-  font-weight: 800; font-family: 'Syne', sans-serif;
-  cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.2s;
-}
-.login-btn:hover { opacity: 0.9; }
-.login-error { color: var(--red); font-size: 13px; text-align: center; margin-top: 10px; display: none; }
-
-/* MAIN */
-#main { display: none; }
-
-/* TOP BAR */
-.topbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 0 20px;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 56px; position: sticky; top: 0; z-index: 100;
-}
-.topbar-logo { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-.topbar-logo span { font-size: 11px; color: var(--muted); font-family: var(--mono); font-weight: 400; }
-.topbar-right { display: flex; align-items: center; gap: 12px; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: blink 2s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-.topbar-user { font-size: 12px; color: var(--muted); font-family: var(--mono); }
-.btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 7px; font-size: 12px; cursor: pointer; transition: color 0.2s; }
-.btn-logout:hover { color: var(--red); border-color: var(--red); }
-
-/* STATS BAR */
-.stats-bar {
-  display: flex; gap: 12px; padding: 16px 20px; overflow-x: auto;
-}
-.stat-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 14px 18px; min-width: 130px; flex-shrink: 0;
-}
-.stat-card .sv { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
-.stat-card .sl { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-.sv.green { color: var(--green); }
-.sv.red { color: var(--red); }
-.sv.yellow { color: var(--accent); }
-.sv.blue { color: var(--blue); }
-
-/* CONTENT */
-.content { padding: 0 20px 40px; }
-.section-hdr {
-  display: flex; align-items: center; justify-content: space-between;
-  margin: 20px 0 12px;
-}
-.section-hdr h2 { font-family: 'Syne', sans-serif; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-.btn-add {
-  background: var(--accent); color: #0a0a0f;
-  border: none; border-radius: 8px; padding: 8px 14px;
-  font-size: 13px; font-weight: 700; cursor: pointer;
-}
-
-
-/* PACK SYSTEM */
-.pack-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 16px; margin-bottom: 10px;
-}
-.pack-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.pack-badge {
-  background: var(--accent); color: #0a0a0f;
-  border-radius: 8px; padding: 4px 10px;
-  font-size: 11px; font-weight: 800; font-family: var(--mono);
-}
-.pack-name { font-weight: 700; font-size: 15px; flex: 1; }
-.pack-progress { margin-bottom: 10px; }
-.pack-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 4px 0; }
-.pack-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-.pack-codes { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.code-chip {
-  padding: 5px 10px; border-radius: 8px; font-size: 11px;
-  font-family: var(--mono); font-weight: 700; cursor: pointer;
-  border: 1px solid var(--border); transition: opacity 0.2s;
-}
-.code-chip.used { background: rgba(255,68,68,0.1); color: var(--red); border-color: var(--red); }
-.code-chip.active { background: rgba(0,230,118,0.1); color: var(--green); border-color: var(--green); }
-.code-chip.expired { background: rgba(245,200,0,0.1); color: var(--accent); border-color: var(--accent); }
-.code-chip.free { background: var(--surface); color: var(--muted); }
-.pack-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.btn-gen { 
-  padding: 7px 14px; border-radius: 8px; border: none;
-  background: var(--accent); color: #0a0a0f;
-  font-size: 12px; font-weight: 700; cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-}
-.btn-copy-all {
-  padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border);
-  background: var(--surface); color: var(--text);
-  font-size: 12px; font-weight: 600; cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-}
-.btn-del-pack {
-  padding: 7px 14px; border-radius: 8px; border: none;
-  background: rgba(255,68,68,0.1); color: var(--red);
-  font-size: 12px; font-weight: 600; cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-}
-.tab-bar {
-  display: flex; gap: 4px; margin-bottom: 16px;
-  background: var(--surface); border-radius: 12px; padding: 4px;
-}
-.tab-btn {
-  flex: 1; padding: 10px; border: none; border-radius: 9px;
-  font-size: 13px; font-weight: 700; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; transition: background 0.2s;
-  background: transparent; color: var(--muted);
-}
-.tab-btn.active { background: var(--card); color: var(--text); }
-
-/* PINTOR CARDS */
-.pintors-grid { display: flex; flex-direction: column; gap: 10px; }
-.pintor-card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 14px; padding: 16px;
-  transition: border-color 0.2s;
-  position: relative; overflow: hidden;
-}
-.pintor-card.active { border-left: 3px solid var(--green); }
-.pintor-card.inactive { border-left: 3px solid var(--red); opacity: 0.7; }
-.pintor-card.expired { border-left: 3px solid var(--accent); }
-.pc-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.pc-avatar {
-  width: 42px; height: 42px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 800; color: white; flex-shrink: 0;
-}
-.pc-info { flex: 1; min-width: 0; }
-.pc-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pc-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
-.pc-status {
-  padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
-  font-family: var(--mono); flex-shrink: 0;
-}
-.pc-status.on { background: rgba(0,230,118,0.15); color: var(--green); }
-.pc-status.off { background: rgba(255,68,68,0.15); color: var(--red); }
-.pc-status.exp { background: rgba(245,200,0,0.15); color: var(--accent); }
-
-.pc-meta { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
-.pc-meta-item { font-size: 11px; color: var(--muted); font-family: var(--mono); }
-.pc-meta-item span { color: var(--text); font-weight: 600; }
-
-.pc-msg {
-  background: var(--surface); border-radius: 8px; padding: 8px 10px;
-  font-size: 12px; color: var(--blue); margin-bottom: 12px;
-  border-left: 2px solid var(--blue); display: none;
-}
-.pc-msg.has-msg { display: block; }
-
-.pc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.pc-btn {
-  padding: 7px 13px; border-radius: 8px; border: none; font-size: 12px;
-  font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
-  transition: opacity 0.2s;
-}
-.pc-btn:hover { opacity: 0.8; }
-.pc-btn.toggle-on { background: rgba(0,230,118,0.15); color: var(--green); }
-.pc-btn.toggle-off { background: rgba(255,68,68,0.15); color: var(--red); }
-.pc-btn.msg-btn { background: rgba(79,195,247,0.15); color: var(--blue); }
-.pc-btn.edit-btn { background: var(--surface); color: var(--muted); }
-.pc-btn.del-btn { background: rgba(255,68,68,0.08); color: var(--red); }
-
-/* ADD MODAL */
-.modal-bg {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-  display: none; align-items: center; justify-content: center;
-  z-index: 1000; padding: 20px;
-}
-.modal-bg.open { display: flex; }
-.modal {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 18px; padding: 28px 24px;
-  width: 100%; max-width: 440px;
-  max-height: 90vh; overflow-y: auto;
-}
-.modal h3 { font-family: 'Syne', sans-serif; font-size: 18px; margin-bottom: 20px; color: var(--accent); }
-.mf { margin-bottom: 14px; }
-.mf label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 5px; }
-.mf input, .mf select, .mf textarea {
-  width: 100%; padding: 11px 13px;
-  background: var(--surface); border: 1.5px solid var(--border);
-  border-radius: 9px; color: var(--text); font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-}
-.mf input:focus, .mf select:focus, .mf textarea:focus { outline: none; border-color: var(--accent); }
-.mf textarea { min-height: 70px; resize: none; }
-.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-.btn-save {
-  flex: 2; padding: 13px; background: var(--accent); color: #0a0a0f;
-  border: none; border-radius: 10px; font-size: 14px; font-weight: 800;
-  cursor: pointer; font-family: 'Syne', sans-serif;
-}
-.btn-cancel {
-  flex: 1; padding: 13px; background: var(--surface); color: var(--muted);
-  border: 1px solid var(--border); border-radius: 10px; font-size: 14px;
-  cursor: pointer;
-}
-
-/* MSG MODAL */
-.msg-modal {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 18px; padding: 28px 24px;
-  width: 100%; max-width: 400px;
-}
-.msg-modal h3 { font-family: 'Syne', sans-serif; font-size: 16px; margin-bottom: 16px; color: var(--blue); }
-
-/* Toast */
-#toast {
-  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-  background: var(--card); border: 1px solid var(--border);
-  color: var(--text); padding: 10px 20px; border-radius: 20px;
-  font-size: 13px; font-weight: 600; opacity: 0; transition: opacity 0.3s;
-  pointer-events: none; z-index: 9999; white-space: nowrap;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-}
-#toast.show { opacity: 1; }
-
-/* Caducidad bar */
-.cad-bar { height: 4px; border-radius: 2px; background: var(--border); margin-top: 8px; overflow: hidden; }
-.cad-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:100vh}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 50%,#12122a,#0a0a0f)}
+.lbox{background:#1a1a26;border:1px solid #2a2a3a;border-radius:20px;padding:40px 32px;width:100%;max-width:360px;text-align:center}
+.lbox .ico{font-size:44px;margin-bottom:10px}
+.lbox h1{font-size:22px;font-weight:800;color:#f5c800;margin-bottom:4px}
+.lbox p{font-size:12px;color:#555;margin-bottom:24px}
+.lbox input{width:100%;padding:14px;background:#0a0a0f;border:2px solid #2a2a3a;border-radius:10px;color:#f0f0f8;font-size:20px;text-align:center;letter-spacing:4px;font-family:'DM Sans',sans-serif}
+.lbox input:focus{outline:none;border-color:#f5c800}
+.btn-y{width:100%;padding:14px;margin-top:14px;background:#f5c800;color:#0a0a0f;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif}
+#lerr{color:#ff4444;font-size:13px;margin-top:10px;display:none}
+#main{display:none}
+.topbar{background:#12121a;border-bottom:1px solid #2a2a3a;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.tlogo{font-weight:800;font-size:15px;color:#f5c800}
+.tlogo span{color:#444;font-size:11px;font-weight:400;margin-left:6px}
+.btn-out{background:transparent;border:1px solid #333;color:#777;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif}
+.tabs{display:flex;gap:4px;padding:16px 16px 0}
+.tab{flex:1;padding:10px;background:#1a1a26;border:1px solid #2a2a3a;border-radius:10px;color:#666;font-size:13px;font-weight:700;cursor:pointer;text-align:center;font-family:'DM Sans',sans-serif}
+.tab.on{background:#2563eb;border-color:#2563eb;color:white}
+.wrap{padding:16px;max-width:720px}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin:8px 0 12px}
+.sec-hdr h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#444}
+.btn-add{background:#f5c800;color:#0a0a0f;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.stat{background:#1a1a26;border:1px solid #2a2a3a;border-radius:12px;padding:10px 14px;min-width:90px}
+.stat .n{font-size:24px;font-weight:800;line-height:1}
+.stat .l{font-size:10px;color:#444;text-transform:uppercase;margin-top:2px}
+.cg{color:#00e676}.cr{color:#ff4444}.cy{color:#f5c800}.cb{color:#4fc3f7}
+.card{background:#1a1a26;border:1px solid #2a2a3a;border-radius:14px;padding:14px;margin-bottom:10px}
+.card.act{border-left:3px solid #00e676}
+.card.ina{border-left:3px solid #ff4444;opacity:.75}
+.card.exp{border-left:3px solid #f5c800}
+.ctop{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.av{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:white;flex-shrink:0}
+.cname{font-weight:700;font-size:14px}
+.csub{font-size:11px;color:#555}
+.bdg{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;flex-shrink:0}
+.bdg.on{background:rgba(0,230,118,.15);color:#00e676}
+.bdg.off{background:rgba(255,68,68,.15);color:#ff4444}
+.bdg.ex{background:rgba(245,200,0,.15);color:#f5c800}
+.cmeta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;font-size:11px;color:#555}
+.cmeta b{color:#aaa}
+.cbar{height:4px;background:#2a2a3a;border-radius:2px;margin-bottom:8px;overflow:hidden}
+.cbar-fill{height:100%;border-radius:2px}
+.cmsg{background:#0a0a1f;border-left:2px solid #4fc3f7;border-radius:6px;padding:7px 10px;font-size:12px;color:#4fc3f7;margin-bottom:8px}
+.cacts{display:flex;gap:6px;flex-wrap:wrap}
+.cbtn{padding:6px 12px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.cbtn.b1{background:rgba(0,230,118,.15);color:#00e676}
+.cbtn.b2{background:rgba(255,68,68,.15);color:#ff4444}
+.cbtn.b3{background:rgba(79,195,247,.15);color:#4fc3f7}
+.cbtn.b4{background:#1e1e2e;color:#888}
+.cbtn.b5{background:rgba(255,68,68,.08);color:#ff4444}
+.pcard{background:#1a1a26;border:1px solid #2a2a3a;border-radius:14px;padding:14px;margin-bottom:10px}
+.phdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pbdg{background:#f5c800;color:#0a0a0f;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:800}
+.codes{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.chip{padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700;font-family:monospace}
+.chip.libre{background:#1e2e1e;color:#00e676;border:1px solid #1a4a1a}
+.chip.usado{background:#2e1e1e;color:#ff4444;border:1px solid #4a1a1a}
+.pbar{height:4px;background:#2a2a3a;border-radius:2px;margin:6px 0;overflow:hidden}
+.pbar-f{height:100%;border-radius:2px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.overlay.open{display:flex}
+.modal{background:#1a1a26;border:1px solid #2a2a3a;border-radius:18px;padding:26px 22px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:17px;font-weight:800;margin-bottom:18px}
+.mf{margin-bottom:13px}
+.mf label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#555;margin-bottom:5px}
+.mf input,.mf select,.mf textarea{width:100%;padding:10px 12px;background:#0a0a0f;border:1.5px solid #2a2a3a;border-radius:8px;color:#f0f0f8;font-size:14px;font-family:'DM Sans',sans-serif}
+.mf input:focus,.mf select:focus,.mf textarea:focus{outline:none;border-color:#f5c800}
+.mf textarea{min-height:64px;resize:none}
+.mbtns{display:flex;gap:8px;margin-top:18px}
+.bsave{flex:2;padding:12px;background:#f5c800;color:#0a0a0f;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif}
+.bcancel{flex:1;padding:12px;background:#1e1e2e;color:#888;border:1px solid #2a2a3a;border-radius:10px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a26;border:1px solid #2a2a3a;color:#f0f0f8;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;white-space:nowrap}
+#toast.show{opacity:1}
 </style>
 </head>
 <body>
-
 <div id="toast"></div>
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">
-      <span class="icon">🎛</span>
-      <h1>CONSOLA MASTER</h1>
-      <p>PintorApp · Panel de control</p>
-    </div>
-    <label class="login-label">Clave maestra</label>
-    <input type="password" class="login-input" id="clave-input" placeholder="••••••" maxlength="20"
-      onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" onclick="doLogin()">ENTRAR →</button>
-    <div class="login-error" id="login-err">❌ Clave incorrecta</div>
+<div id="login">
+  <div class="lbox">
+    <div class="ico">🎛</div>
+    <h1>CONSOLA MASTER</h1>
+    <p>PintorApp · Panel de control</p>
+    <input type="password" id="clave" placeholder="••••••" maxlength="20">
+    <button class="btn-y" id="btn-entrar">ENTRAR →</button>
+    <div id="lerr">❌ Clave incorrecta</div>
   </div>
 </div>
 
-<!-- MAIN -->
 <div id="main">
   <div class="topbar">
-    <div class="topbar-logo">
-      🎛 CONSOLA MASTER
-      <span>PintorApp</span>
-    </div>
-    <div class="topbar-right">
-      <div class="status-dot"></div>
-      <span class="topbar-user" id="topbar-time">--:--</span>
-      <button class="btn-logout" onclick="doLogout()">Salir</button>
-    </div>
+    <div class="tlogo">🎛 CONSOLA MASTER <span>PintorApp</span></div>
+    <button class="btn-out" id="btn-salir">Salir</button>
   </div>
-
-  <div class="stats-bar" id="stats-bar"></div>
-
-  <div class="content">
-    <!-- TAB BAR -->
-    <div class="tab-bar" style="margin-top:16px;">
-      <button class="tab-btn active" id="tab-pintores" onclick="switchTab('pintores')">🎨 Pintores</button>
-      <button class="tab-btn" id="tab-packs" onclick="switchTab('packs')">🎟 Packs de licencias</button>
-    </div>
-
-    <!-- PINTORES TAB -->
-    <div id="view-pintores">
-    <div class="section-hdr">
+  <div class="tabs">
+    <button class="tab on" id="tab1">🎨 Pintores</button>
+    <button class="tab" id="tab2">🎟 Packs</button>
+  </div>
+  <div class="wrap" id="view1">
+    <div class="stats" id="stats1"></div>
+    <div class="sec-hdr">
       <h2>📋 Pintores registrados</h2>
-      <button class="btn-add" onclick="abrirModal()">＋ Nuevo pintor</button>
+      <button class="btn-add" id="btn-np">＋ Nuevo pintor</button>
     </div>
-    <div class="pintors-grid" id="pintors-grid">
-      <div style="text-align:center;color:var(--muted);padding:40px;font-size:13px;">
-        Cargando pintores...
-      </div>
+    <div id="grid1"><div style="text-align:center;color:#444;padding:40px">Conectando...</div></div>
+  </div>
+  <div class="wrap" id="view2" style="display:none">
+    <div class="stats" id="stats2"></div>
+    <div class="sec-hdr">
+      <h2>🎟 Packs de licencias</h2>
+      <button class="btn-add" id="btn-pk">＋ Nuevo pack</button>
     </div>
+    <div id="grid2"><div style="text-align:center;color:#444;padding:40px">Sin packs</div></div>
   </div>
 </div>
 
-<!-- ADD/EDIT MODAL -->
-<div class="modal-bg" id="modal-add">
+<div class="overlay" id="m-pintor">
   <div class="modal">
-    <h3 id="modal-title">➕ Nuevo pintor</h3>
-    <div class="mf"><label>Nombre / Empresa</label><input type="text" id="m-nom" placeholder="Joan Pintors..."></div>
-    <div class="mf"><label>Teléfono</label><input type="tel" id="m-tel" placeholder="612 345 678"></div>
-    <div class="mf"><label>Población</label><input type="text" id="m-pob" placeholder="Lleida..."></div>
+    <h3 id="m-pintor-t" style="color:#f5c800">➕ Nuevo pintor</h3>
+    <div class="mf"><label>Nombre *</label><input type="text" id="f-nom" placeholder="Joan Pintors..."></div>
+    <div class="mf"><label>Teléfono</label><input type="tel" id="f-tel" placeholder="612 345 678"></div>
+    <div class="mf"><label>Población</label><input type="text" id="f-pob" placeholder="Lleida..."></div>
     <div class="mf"><label>Especialidad</label>
-      <select id="m-esp">
-        <option>Pintura interior i exterior</option>
-        <option>Pintura industrial</option>
-        <option>Decoració i pintura</option>
-        <option>Impermeabilitzacions</option>
-        <option>Pintura i reformes</option>
-        <option>Pintor autònom</option>
+      <select id="f-esp">
+        <option>Pintura interior i exterior</option><option>Pintura industrial</option>
+        <option>Decoració i pintura</option><option>Impermeabilitzacions</option>
+        <option>Pintura i reformes</option><option>Pintor autònom</option>
       </select>
     </div>
-    <div class="mf"><label>Color de app</label>
-      <select id="m-color">
-        <option value="#2563eb">🔵 Azul</option>
-        <option value="#7c3aed">🟣 Morado</option>
-        <option value="#059669">🟢 Verde</option>
-        <option value="#dc2626">🔴 Rojo</option>
-        <option value="#d97706">🟡 Naranja</option>
-        <option value="#0891b2">🩵 Cyan</option>
+    <div class="mf"><label>Color</label>
+      <select id="f-color">
+        <option value="#2563eb">🔵 Azul</option><option value="#7c3aed">🟣 Morado</option>
+        <option value="#059669">🟢 Verde</option><option value="#dc2626">🔴 Rojo</option>
+        <option value="#d97706">🟡 Naranja</option><option value="#0891b2">🩵 Cyan</option>
         <option value="#1e293b">⚫ Negro</option>
       </select>
     </div>
-    <div class="mf"><label>Caducidad (meses)</label>
-      <select id="m-cad">
-        <option value="3">3 meses</option>
-        <option value="6">6 meses</option>
-        <option value="12" selected>12 meses (1 año)</option>
-        <option value="24">24 meses (2 años)</option>
-        <option value="0">Sin caducidad</option>
+    <div class="mf"><label>Caducidad</label>
+      <select id="f-cad">
+        <option value="3">3 meses</option><option value="6">6 meses</option>
+        <option value="12" selected>12 meses (1 año)</option><option value="24">24 meses</option>
+        <option value="0">Sin límite</option>
       </select>
     </div>
-    <div class="mf"><label>Mensaje inicial (opcional)</label>
-      <textarea id="m-msg" placeholder="Bienvenido a tu app de presupuestos..."></textarea>
-    </div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-      <button class="btn-save" onclick="guardarPintor()">💾 Guardar</button>
+    <div class="mf"><label>Mensaje</label><textarea id="f-msg" placeholder="Bienvenido..."></textarea></div>
+    <div class="mbtns">
+      <button class="bcancel" id="f-cancel">Cancelar</button>
+      <button class="bsave" id="f-save">💾 Guardar</button>
     </div>
   </div>
 </div>
 
-<!-- MSG MODAL -->
-<div class="modal-bg" id="modal-msg">
-  <div class="msg-modal">
-    <h3>💬 Enviar mensaje al pintor</h3>
-    <div class="mf"><label>Pintor</label><input type="text" id="msg-nombre" disabled style="opacity:0.5"></div>
-    <div class="mf"><label>Mensaje</label>
-      <textarea id="msg-texto" placeholder="Escribe un aviso, oferta o recordatorio..."></textarea>
-    </div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="cerrarMsgModal()">Cancelar</button>
-      <button class="btn-save" style="background:var(--blue);color:#0a0a0f" onclick="enviarMensaje()">📤 Enviar</button>
+<div class="overlay" id="m-msg">
+  <div class="modal">
+    <h3 style="color:#4fc3f7">💬 Mensaje al pintor</h3>
+    <div class="mf"><label>Pintor</label><input type="text" id="msg-n" disabled style="opacity:.5"></div>
+    <div class="mf"><label>Mensaje</label><textarea id="msg-t" placeholder="Escribe un aviso..."></textarea></div>
+    <div class="mbtns">
+      <button class="bcancel" id="msg-cancel">Cancelar</button>
+      <button class="bsave" id="msg-save" style="background:#4fc3f7;color:#0a0a0f">📤 Enviar</button>
     </div>
   </div>
 </div>
 
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, set, get, onValue, remove, update }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-
-// ── CONFIG FIREBASE (usa tu proyecto pintorapp-6d480) ────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyBsnQ3pRx0AS0n3AEr0jp8atCbVlQIuyYQ",
-  authDomain: "pintorapp-6d480.firebaseapp.com",
-  databaseURL: "https://pintorapp-6d480-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "pintorapp-6d480",
-  storageBucket: "pintorapp-6d480.appspot.com",
-  messagingSenderId: "798799179968",
-  appId: "1:798799179968:web:14ab31b03e17b8b041bd25"
-};
-
-const MASTER_KEY = "Robert2024!";  // ← CAMBIA ESTO
-
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
-const PINTORS_REF = 'pintorapp/pintores';
-
-window._db  = db;
-window._ref = ref;
-window._set = set;
-window._get = get;
-window._onValue = onValue;
-window._remove = remove;
-window._update = update;
-window._PINTORS_REF = PINTORS_REF;
-window._firebase_ready = true;
-window.dispatchEvent(new Event('firebase_ready'));
-</script>
+<div class="overlay" id="m-pack">
+  <div class="modal">
+    <h3 style="color:#f5c800">🎟 Nuevo pack</h3>
+    <div class="mf"><label>Cliente *</label><input type="text" id="pk-cli" placeholder="La Botiga del Robert..."></div>
+    <div class="mf"><label>Teléfono</label><input type="tel" id="pk-tel" placeholder="973 000 392"></div>
+    <div class="mf"><label>Licencias</label>
+      <select id="pk-num"><option value="10">10</option><option value="20">20</option><option value="30">30</option></select>
+    </div>
+    <div class="mf"><label>Duración</label>
+      <select id="pk-dur"><option value="12" selected>12 meses</option><option value="6">6 meses</option><option value="24">24 meses</option></select>
+    </div>
+    <div class="mbtns">
+      <button class="bcancel" id="pk-cancel">Cancelar</button>
+      <button class="bsave" id="pk-save">🎟 Generar</button>
+    </div>
+  </div>
+</div>
 
 <script>
-var pintores = {};
-var editingId = null;
-var msgTargetId = null;
+firebase.initializeApp({
+  apiKey:"AIzaSyBsnQ3pRx0AS0n3AEr0jp8atCbVlQIuyYQ",
+  authDomain:"pintorapp-6d480.firebaseapp.com",
+  databaseURL:"https://pintorapp-6d480-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"pintorapp-6d480",
+  storageBucket:"pintorapp-6d480.firebasestorage.app",
+  messagingSenderId:"798799179968",
+  appId:"1:798799179968:web:14ab31b03e17b8b041bd25"
+});
+var db=firebase.database();
+var CLAVE='NachiDacia2342';
+var WA='34609321585';
+var pintores={};var packs={};var editId=null;var msgId=null;
 
-// ─── CLOCK ───────────────────────────────────────────────────────────────────
-setInterval(function(){
-  var now = new Date();
-  var t = document.getElementById('topbar-time');
-  if(t) t.textContent = now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-}, 1000);
-
-// ─── LOGIN ───────────────────────────────────────────────────────────────────
-function doLogin() {
-  var val = document.getElementById('clave-input').value;
-  if (val === window.MASTER_KEY || val === 'NachiDacia2342') {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main').style.display = 'block';
-    initApp();
-  } else {
-    document.getElementById('login-err').style.display = 'block';
-    document.getElementById('clave-input').value = '';
+// LOGIN
+document.getElementById('btn-entrar').onclick=function(){
+  var v=document.getElementById('clave').value.trim();
+  if(v===CLAVE){
+    document.getElementById('login').style.display='none';
+    document.getElementById('main').style.display='block';
+    start();
+  }else{
+    document.getElementById('lerr').style.display='block';
+    document.getElementById('clave').value='';
   }
-}
-window.doLogin = doLogin;
+};
+document.getElementById('clave').onkeydown=function(e){if(e.key==='Enter')document.getElementById('btn-entrar').click();};
+document.getElementById('btn-salir').onclick=function(){
+  document.getElementById('main').style.display='none';
+  document.getElementById('login').style.display='flex';
+  document.getElementById('clave').value='';
+};
 
-function doLogout() {
-  document.getElementById('main').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('clave-input').value = '';
-}
-window.doLogout = doLogout;
-
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-function initApp() {
-  if (!window._firebase_ready) {
-    window.addEventListener('firebase_ready', initApp);
-    return;
-  }
-  initPacks();
-  var dbRef = window._ref(window._db, window._PINTORS_REF);
-  window._onValue(dbRef, function(snap) {
-    pintores = snap.val() || {};
-    renderAll();
-  });
-}
-
-// ─── RENDER ───────────────────────────────────────────────────────────────────
-function renderAll() {
-  renderStats();
-  renderPintors();
-}
-
-function renderStats() {
-  var total = Object.keys(pintores).length;
-  var activos = 0, inactivos = 0, caducados = 0;
-  Object.values(pintores).forEach(function(p) {
-    var st = getStatus(p);
-    if (st === 'active') activos++;
-    else if (st === 'expired') caducados++;
-    else inactivos++;
-  });
-  var sb = document.getElementById('stats-bar');
-  sb.innerHTML = [
-    ['<span class="sv yellow">'+total+'</span>', 'Total pintores'],
-    ['<span class="sv green">'+activos+'</span>', 'Activos'],
-    ['<span class="sv red">'+inactivos+'</span>', 'Desactivados'],
-    ['<span class="sv blue">'+caducados+'</span>', 'Caducados'],
-  ].map(function(s){ return '<div class="stat-card">'+s[0]+'<div class="sl">'+s[1]+'</div></div>'; }).join('');
-}
-
-function getStatus(p) {
-  if (!p.activo) return 'inactive';
-  if (p.caducidad_meses > 0) {
-    var created = new Date(p.created_at);
-    var expiry = new Date(created);
-    expiry.setMonth(expiry.getMonth() + p.caducidad_meses);
-    if (new Date() > expiry) return 'expired';
-  }
-  return 'active';
-}
-
-function getExpiry(p) {
-  if (!p.caducidad_meses || p.caducidad_meses == 0) return null;
-  var created = new Date(p.created_at);
-  var expiry = new Date(created);
-  expiry.setMonth(expiry.getMonth() + parseInt(p.caducidad_meses));
-  return expiry;
-}
-
-function renderPintors() {
-  var grid = document.getElementById('pintors-grid');
-  var keys = Object.keys(pintores);
-  if (keys.length === 0) {
-    grid.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;font-size:13px;">No hay pintores registrados aún.<br>Pulsa "+ Nuevo pintor" para añadir el primero.</div>';
-    return;
-  }
-  grid.innerHTML = '';
-  keys.forEach(function(id) {
-    var p = pintores[id];
-    var st = getStatus(p);
-    var card = document.createElement('div');
-    card.className = 'pintor-card ' + (st === 'active' ? 'active' : st === 'expired' ? 'expired' : 'inactive');
-
-    var initials = (p.nom||'?').split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase();
-    var statusLabel = st === 'active' ? 'ACTIVO' : st === 'expired' ? 'CADUCADO' : 'INACTIVO';
-    var statusClass = st === 'active' ? 'on' : st === 'expired' ? 'exp' : 'off';
-
-    // Expiry progress
-    var expBar = '';
-    var expiry = getExpiry(p);
-    if (expiry) {
-      var created = new Date(p.created_at);
-      var total = expiry - created;
-      var elapsed = new Date() - created;
-      var pct = Math.min(100, Math.max(0, (elapsed/total)*100));
-      var remaining = Math.max(0, Math.ceil((expiry - new Date()) / (1000*60*60*24)));
-      var barColor = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--accent)' : 'var(--green)';
-      expBar = '<div class="cad-bar"><div class="cad-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>';
-      expBar += '<div style="font-size:10px;color:var(--muted);margin-top:3px;font-family:var(--mono)">'+
-        (remaining > 0 ? remaining+' días restantes' : 'CADUCADO')+'</div>';
-    }
-
-    var msgHtml = p.mensaje ? '<div class="pc-msg has-msg">💬 '+p.mensaje+'</div>' : '<div class="pc-msg"></div>';
-
-    card.innerHTML = `
-      <div class="pc-top">
-        <div class="pc-avatar" style="background:${p.color||'#2563eb'}">${initials}</div>
-        <div class="pc-info">
-          <div class="pc-name">${p.nom||'Sin nombre'}</div>
-          <div class="pc-sub">${p.esp||'Pintor'} · ${p.pob||'—'}</div>
-        </div>
-        <div class="pc-status ${statusClass}">${statusLabel}</div>
-      </div>
-      <div class="pc-meta">
-        <div class="pc-meta-item">📞 <span>${p.tel||'—'}</span></div>
-        <div class="pc-meta-item">📅 Alta: <span>${p.created_at ? new Date(p.created_at).toLocaleDateString('es-ES') : '—'}</span></div>
-        <div class="pc-meta-item">⏱ Caducidad: <span>${p.caducidad_meses > 0 ? p.caducidad_meses+' meses' : 'Sin límite'}</span></div>
-        <div class="pc-meta-item">📄 Presups: <span>${p.num_presupuestos||0}</span></div>
-      </div>
-      ${expBar}
-      ${msgHtml}
-      <div class="pc-actions">
-        ${st === 'active'
-          ? `<button class="pc-btn toggle-off" data-id="${id}">⏸ Desactivar</button>`
-          : `<button class="pc-btn toggle-on" data-id="${id}">▶ Activar</button>`}
-        <button class="pc-btn msg-btn" data-id="${id}">💬 Mensaje</button>
-        <button class="pc-btn edit-btn" data-id="${id}">✏️ Editar</button>
-        <button class="pc-btn del-btn" data-id="${id}">🗑 Eliminar</button>
-      </div>`;
-    grid.appendChild(card);
-  });
-
-  // Events
-  grid.querySelectorAll('.toggle-on,.toggle-off').forEach(function(btn){
-    btn.addEventListener('click', function(){ togglePintor(this.getAttribute('data-id')); });
-  });
-  grid.querySelectorAll('.msg-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){ abrirMsgModal(this.getAttribute('data-id')); });
-  });
-  grid.querySelectorAll('.edit-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){ editarPintor(this.getAttribute('data-id')); });
-  });
-  grid.querySelectorAll('.del-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){ eliminarPintor(this.getAttribute('data-id')); });
-  });
-}
-
-// ─── ACTIONS ──────────────────────────────────────────────────────────────────
-function togglePintor(id) {
-  var p = pintores[id];
-  var newVal = !p.activo;
-  window._update(window._ref(window._db, window._PINTORS_REF+'/'+id), { activo: newVal });
-  showToast(newVal ? '✅ Pintor activado' : '⏸ Pintor desactivado');
-}
-window.togglePintor = togglePintor;
-
-function abrirModal(id) {
-  editingId = id || null;
-  document.getElementById('modal-title').textContent = id ? '✏️ Editar pintor' : '➕ Nuevo pintor';
-  if (id && pintores[id]) {
-    var p = pintores[id];
-    document.getElementById('m-nom').value = p.nom||'';
-    document.getElementById('m-tel').value = p.tel||'';
-    document.getElementById('m-pob').value = p.pob||'';
-    document.getElementById('m-esp').value = p.esp||'';
-    document.getElementById('m-color').value = p.color||'#2563eb';
-    document.getElementById('m-cad').value = p.caducidad_meses||12;
-    document.getElementById('m-msg').value = p.mensaje||'';
-  } else {
-    document.getElementById('m-nom').value = '';
-    document.getElementById('m-tel').value = '';
-    document.getElementById('m-pob').value = '';
-    document.getElementById('m-msg').value = '';
-  }
-  document.getElementById('modal-add').classList.add('open');
-}
-window.abrirModal = abrirModal;
-
-function cerrarModal() { document.getElementById('modal-add').classList.remove('open'); }
-window.cerrarModal = cerrarModal;
-
-function guardarPintor() {
-  var nom = document.getElementById('m-nom').value.trim();
-  if (!nom) { showToast('⚠️ Escribe el nombre'); return; }
-  var id = editingId || ('pintor_' + Date.now());
-  var existing = (editingId && pintores[editingId]) || {};
-  var data = {
-    nom: nom,
-    tel: document.getElementById('m-tel').value.trim(),
-    pob: document.getElementById('m-pob').value.trim(),
-    esp: document.getElementById('m-esp').value,
-    color: document.getElementById('m-color').value,
-    caducidad_meses: parseInt(document.getElementById('m-cad').value),
-    mensaje: document.getElementById('m-msg').value.trim(),
-    activo: existing.activo !== undefined ? existing.activo : true,
-    created_at: existing.created_at || new Date().toISOString(),
-    num_presupuestos: existing.num_presupuestos || 0
-  };
-  window._set(window._ref(window._db, window._PINTORS_REF+'/'+id), data);
-  cerrarModal();
-  showToast(editingId ? '✅ Pintor actualizado' : '✅ Pintor añadido');
-}
-window.guardarPintor = guardarPintor;
-
-function editarPintor(id) { abrirModal(id); }
-window.editarPintor = editarPintor;
-
-function eliminarPintor(id) {
-  var p = pintores[id];
-  if (!confirm('¿Eliminar a ' + (p ? p.nom : id) + '? Esta acción no se puede deshacer.')) return;
-  window._remove(window._ref(window._db, window._PINTORS_REF+'/'+id));
-  showToast('🗑 Pintor eliminado');
-}
-window.eliminarPintor = eliminarPintor;
-
-function abrirMsgModal(id) {
-  msgTargetId = id;
-  var p = pintores[id];
-  document.getElementById('msg-nombre').value = p ? p.nom : id;
-  document.getElementById('msg-texto').value = p ? (p.mensaje||'') : '';
-  document.getElementById('modal-msg').classList.add('open');
-}
-window.abrirMsgModal = abrirMsgModal;
-
-function cerrarMsgModal() { document.getElementById('modal-msg').classList.remove('open'); }
-window.cerrarMsgModal = cerrarMsgModal;
-
-function enviarMensaje() {
-  var txt = document.getElementById('msg-texto').value.trim();
-  window._update(window._ref(window._db, window._PINTORS_REF+'/'+msgTargetId), { mensaje: txt });
-  cerrarMsgModal();
-  showToast(txt ? '💬 Mensaje enviado' : '🗑 Mensaje eliminado');
-}
-window.enviarMensaje = enviarMensaje;
-
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 2800);
-}
-
-
-// ─── TABS ─────────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.getElementById('view-pintores').style.display = tab === 'pintores' ? 'block' : 'none';
-  document.getElementById('view-packs').style.display = tab === 'packs' ? 'block' : 'none';
-  document.getElementById('tab-pintores').className = 'tab-btn' + (tab === 'pintores' ? ' active' : '');
-  document.getElementById('tab-packs').className = 'tab-btn' + (tab === 'packs' ? ' active' : '');
-  if (tab === 'packs') renderPacks();
-}
-
-// ─── PACKS ────────────────────────────────────────────────────────────────────
-var WHATSAPP_NUM = '34609321585';
-var packs = {};
-
-function initPacks() {
-  var packsRef = window._ref(window._db, 'pintorapp/packs');
-  window._onValue(packsRef, function(snap) {
-    packs = snap.val() || {};
-    renderPackStats();
-  });
-}
-
-function generarCodigo() {
-  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  var code = '';
-  for (var i = 0; i < 10; i++) {
-    if (i === 4 || i === 8) code += '-';
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
-}
-
-function abrirModalPack() {
-  document.getElementById('p-cliente').value = '';
-  document.getElementById('p-tel').value = '';
-  document.getElementById('modal-pack').classList.add('open');
-}
-window.abrirModalPack = abrirModalPack;
-
-function cerrarModalPack() {
-  document.getElementById('modal-pack').classList.remove('open');
-}
-window.cerrarModalPack = cerrarModalPack;
-
-function generarPack() {
-  var cliente = document.getElementById('p-cliente').value.trim();
-  if (!cliente) { showToast('⚠️ Escribe el nombre del cliente'); return; }
-  var num = parseInt(document.getElementById('p-num').value);
-  var dur = parseInt(document.getElementById('p-dur').value);
-  var tel = document.getElementById('p-tel').value.trim();
-  
-  var packId = 'pack_' + Date.now();
-  var codigos = {};
-  for (var i = 0; i < num; i++) {
-    var code = generarCodigo();
-    codigos[code] = {
-      estado: 'libre',
-      creado: new Date().toISOString(),
-      duracion_meses: dur,
-      pintor_id: null,
-      activado: null,
-      expira: null
-    };
-  }
-  
-  var packData = {
-    cliente: cliente,
-    tel: tel,
-    num_total: num,
-    duracion_meses: dur,
-    creado: new Date().toISOString(),
-    codigos: codigos
-  };
-  
-  window._set(window._ref(window._db, 'pintorapp/packs/' + packId), packData);
-  cerrarModalPack();
-  showToast('✅ Pack generado con ' + num + ' códigos para ' + cliente);
-  switchTab('packs');
-}
-window.generarPack = generarPack;
-
-function renderPackStats() {
-  var total_packs = Object.keys(packs).length;
-  var total_codigos = 0, usados = 0, libres = 0, expirados = 0;
-  Object.values(packs).forEach(function(p) {
-    if (!p.codigos) return;
-    Object.values(p.codigos).forEach(function(c) {
-      total_codigos++;
-      if (c.estado === 'activo') usados++;
-      else if (c.estado === 'expirado') expirados++;
-      else libres++;
-    });
-  });
-  var sb = document.getElementById('packs-stats');
-  if (!sb) return;
-  sb.innerHTML = [
-    ['<span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--accent)">'+total_packs+'</span>', 'Packs activos'],
-    ['<span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--green)">'+libres+'</span>', 'Códigos libres'],
-    ['<span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--blue)">'+usados+'</span>', 'En uso'],
-    ['<span style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--red)">'+expirados+'</span>', 'Expirados'],
-  ].map(function(s){ return '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;min-width:110px;">'+s[0]+'<div style="font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;">'+s[1]+'</div></div>'; }).join('');
-}
-
-function renderPacks() {
-  renderPackStats();
-  var grid = document.getElementById('packs-grid');
-  if (!grid) return;
-  var keys = Object.keys(packs);
-  if (keys.length === 0) {
-    grid.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;font-size:13px;">No hay packs creados aún.<br>Pulsa "+ Nuevo pack" para crear el primero.</div>';
-    return;
-  }
-  grid.innerHTML = '';
-  keys.forEach(function(packId) {
-    var p = packs[packId];
-    if (!p.codigos) return;
-    var codigos = p.codigos;
-    var ckeys = Object.keys(codigos);
-    var libres = ckeys.filter(function(k){ return codigos[k].estado === 'libre'; }).length;
-    var usados = ckeys.filter(function(k){ return codigos[k].estado === 'activo'; }).length;
-    var expirados = ckeys.filter(function(k){ return codigos[k].estado === 'expirado'; }).length;
-    var pct_usado = Math.round((usados + expirados) / ckeys.length * 100);
-    var bar_color = pct_usado >= 90 ? 'var(--red)' : pct_usado >= 60 ? 'var(--accent)' : 'var(--green)';
-
-    var div = document.createElement('div');
-    div.className = 'pack-card';
-    
-    // Header
-    var hdr = '<div class="pack-header">';
-    hdr += '<div class="pack-badge">🎟 PACK</div>';
-    hdr += '<div class="pack-name">' + p.cliente + '</div>';
-    if (p.tel) hdr += '<div style="font-size:11px;color:var(--muted);font-family:var(--mono);">' + p.tel + '</div>';
-    hdr += '</div>';
-    
-    // Progress
-    var prog = '<div class="pack-progress">';
-    prog += '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;">';
-    prog += '<span>Licencias usadas: <strong style="color:var(--text)">' + (usados+expirados) + ' / ' + ckeys.length + '</strong></span>';
-    prog += '<span>' + p.duracion_meses + ' meses/licencia</span></div>';
-    prog += '<div class="pack-bar"><div class="pack-fill" style="width:'+pct_usado+'%;background:'+bar_color+'"></div></div>';
-    if (libres === 0) {
-      prog += '<div style="font-size:11px;color:var(--red);margin-top:4px;font-weight:700;">⚠️ Pack agotado — contactar para renovar</div>';
-    } else {
-      prog += '<div style="font-size:11px;color:var(--muted);margin-top:4px;">'+libres+' códigos disponibles</div>';
-    }
-    prog += '</div>';
-    
-    // Codes
-    var codes_html = '<div class="pack-codes">';
-    ckeys.forEach(function(code) {
-      var c = codigos[code];
-      var cls = c.estado === 'activo' ? 'active' : c.estado === 'expirado' ? 'expired' : 'free';
-      var icon = c.estado === 'activo' ? '✓' : c.estado === 'expirado' ? '⏰' : '○';
-      codes_html += '<span class="code-chip ' + cls + '" onclick="verCodigo('' + packId + '','' + code + '')" title="Ver detalles">' + icon + ' ' + code + '</span>';
-    });
-    codes_html += '</div>';
-    
-    // Actions
-    var acts = '<div class="pack-actions">';
-    acts += '<button class="btn-gen" onclick="copiarTodos('' + packId + '')">📋 Copiar libres</button>';
-    acts += '<button class="btn-gen" style="background:var(--blue);color:white;" onclick="enviarWhatsApp('' + packId + '')">📱 Enviar WhatsApp</button>';
-    acts += '<button class="btn-copy-all" onclick="renderPacks()">🔄 Actualizar</button>';
-    acts += '<button class="btn-del-pack" onclick="eliminarPack('' + packId + '')">🗑 Eliminar</button>';
-    acts += '</div>';
-    
-    div.innerHTML = hdr + prog + codes_html + acts;
-    grid.appendChild(div);
-  });
-}
-
-function verCodigo(packId, code) {
-  var c = packs[packId].codigos[code];
-  document.getElementById('code-display').textContent = code;
-  var info = 'Estado: ' + c.estado.toUpperCase();
-  if (c.activado) info += ' · Activado: ' + new Date(c.activado).toLocaleDateString('es-ES');
-  if (c.expira) info += ' · Expira: ' + new Date(c.expira).toLocaleDateString('es-ES');
-  info += ' · Duración: ' + c.duracion_meses + ' meses';
-  document.getElementById('code-info').textContent = info;
-  window._currentCode = code;
-  document.getElementById('modal-code').classList.add('open');
-}
-window.verCodigo = verCodigo;
-
-function cerrarModalCode() { document.getElementById('modal-code').classList.remove('open'); }
-window.cerrarModalCode = cerrarModalCode;
-
-function copiarCode() {
-  navigator.clipboard.writeText(window._currentCode || '').then(function() {
-    showToast('📋 Código copiado: ' + window._currentCode);
-    cerrarModalCode();
-  });
-}
-window.copiarCode = copiarCode;
-
-function copiarTodos(packId) {
-  var codigos = packs[packId].codigos;
-  var libres = Object.keys(codigos).filter(function(k){ return codigos[k].estado === 'libre'; });
-  if (!libres.length) { showToast('⚠️ No quedan códigos libres'); return; }
-  var texto = '🎟 CÓDIGOS PINTORAPP — ' + packs[packId].cliente + '\n';
-  texto += '━━━━━━━━━━━━━━━━━━━━\n';
-  libres.forEach(function(c, i) { texto += (i+1) + '. ' + c + '\n'; });
-  texto += '━━━━━━━━━━━━━━━━━━━━\n';
-  texto += 'Válidos ' + packs[packId].duracion_meses + ' meses · Consultar precio: wa.me/' + WHATSAPP_NUM;
-  navigator.clipboard.writeText(texto).then(function() {
-    showToast('📋 ' + libres.length + ' códigos copiados');
-  });
-}
-window.copiarTodos = copiarTodos;
-
-function enviarWhatsApp(packId) {
-  var p = packs[packId];
-  var codigos = p.codigos;
-  var libres = Object.keys(codigos).filter(function(k){ return codigos[k].estado === 'libre'; });
-  if (!libres.length) { showToast('⚠️ No quedan códigos libres'); return; }
-  var msg = '🎨 *PINTORAPP — Codis d\'activació*\n';
-  msg += '━━━━━━━━━━━━━━━━━━━━\n';
-  msg += '🏪 Client: *' + p.cliente + '*\n';
-  msg += '🎟 Pack: ' + libres.length + ' llicències\n';
-  msg += '⏱ Durada: ' + p.duracion_meses + ' mesos\n\n';
-  libres.forEach(function(c, i) { msg += (i+1) + '. `' + c + '`\n'; });
-  msg += '\n━━━━━━━━━━━━━━━━━━━━\n';
-  msg += '❓ Consultar preu: wa.me/' + WHATSAPP_NUM;
-  var tel = p.tel ? p.tel.replace(/[^0-9]/g,'') : '';
-  var url = 'https://wa.me/' + (tel ? '34'+tel : '') + '?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
-}
-window.enviarWhatsApp = enviarWhatsApp;
-
-function eliminarPack(packId) {
-  var p = packs[packId];
-  if (!confirm('¿Eliminar el pack de ' + (p ? p.cliente : packId) + '?')) return;
-  window._remove(window._ref(window._db, 'pintorapp/packs/' + packId));
-  showToast('🗑 Pack eliminado');
+// TABS
+document.getElementById('tab1').onclick=function(){
+  document.getElementById('view1').style.display='block';
+  document.getElementById('view2').style.display='none';
+  document.getElementById('tab1').className='tab on';
+  document.getElementById('tab2').className='tab';
+};
+document.getElementById('tab2').onclick=function(){
+  document.getElementById('view1').style.display='none';
+  document.getElementById('view2').style.display='block';
+  document.getElementById('tab1').className='tab';
+  document.getElementById('tab2').className='tab on';
   renderPacks();
+};
+
+// FIREBASE
+function start(){
+  db.ref('pintorapp/pintores').on('value',function(s){pintores=s.val()||{};renderPintores();});
+  db.ref('pintorapp/packs').on('value',function(s){packs=s.val()||{};});
 }
-window.eliminarPack = eliminarPack;
 
-// ─── MASTER KEY disponible para login ────────────────────────────────────────
-window.MASTER_KEY = 'NachiDacia2342';
+function status(p){
+  if(!p.activo)return'ina';
+  if(p.caducidad_meses>0&&p.created_at){
+    var e=new Date(p.created_at);e.setMonth(e.getMonth()+parseInt(p.caducidad_meses));
+    if(new Date()>e)return'exp';
+  }
+  return'act';
+}
+
+function renderPintores(){
+  var ks=Object.keys(pintores);
+  var a=ks.filter(function(k){return status(pintores[k])==='act';}).length;
+  var i=ks.filter(function(k){return status(pintores[k])==='ina';}).length;
+  var e=ks.filter(function(k){return status(pintores[k])==='exp';}).length;
+  document.getElementById('stats1').innerHTML=
+    s(ks.length,'Total','cy')+s(a,'Activos','cg')+s(i,'Inactivos','cr')+s(e,'Caducados','cb');
+  var g=document.getElementById('grid1');
+  if(!ks.length){g.innerHTML='<div style="text-align:center;color:#444;padding:40px">Sin pintores. Pulsa "+ Nuevo pintor"</div>';return;}
+  g.innerHTML='';
+  ks.forEach(function(id){
+    var p=pintores[id];var st=status(p);
+    var ini=(p.nom||'?').split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase();
+    var stl=st==='act'?'ACTIVO':st==='exp'?'CADUCADO':'INACTIVO';
+    var stc=st==='act'?'on':st==='exp'?'ex':'off';
+    var bar='';
+    if(p.caducidad_meses>0&&p.created_at){
+      var cr=new Date(p.created_at);var ex=new Date(cr);ex.setMonth(ex.getMonth()+parseInt(p.caducidad_meses));
+      var pct=Math.min(100,Math.max(0,((new Date()-cr)/(ex-cr))*100));
+      var bc=pct>80?'#ff4444':pct>50?'#f5c800':'#00e676';
+      var days=Math.max(0,Math.ceil((ex-new Date())/864e5));
+      bar='<div class="cbar"><div class="cbar-fill" style="width:'+pct+'%;background:'+bc+'"></div></div>'+
+          '<div style="font-size:10px;color:#444;margin-bottom:6px">'+(days>0?days+' días restantes':'CADUCADO')+'</div>';
+    }
+    var tog=st==='act'?
+      '<button class="cbtn b2" data-act="tog" data-id="'+id+'">⏸ Desactivar</button>':
+      '<button class="cbtn b1" data-act="tog" data-id="'+id+'">▶ Activar</button>';
+    var div=document.createElement('div');
+    div.className='card '+st;
+    div.innerHTML=
+      '<div class="ctop">'+
+        '<div class="av" style="background:'+(p.color||'#2563eb')+'">'+ini+'</div>'+
+        '<div style="flex:1"><div class="cname">'+(p.nom||'Sin nombre')+'</div>'+
+        '<div class="csub">'+(p.esp||'Pintor')+' · '+(p.pob||'—')+'</div></div>'+
+        '<div class="bdg '+stc+'">'+stl+'</div>'+
+      '</div>'+
+      '<div class="cmeta"><span>📞 <b>'+(p.tel||'—')+'</b></span>'+
+      '<span>📅 <b>'+(p.created_at?new Date(p.created_at).toLocaleDateString('es-ES'):'—')+'</b></span>'+
+      '<span>⏱ <b>'+(p.caducidad_meses>0?p.caducidad_meses+'m':'∞')+'</b></span></div>'+
+      bar+(p.mensaje?'<div class="cmsg">💬 '+p.mensaje+'</div>':'')+
+      '<div class="cacts">'+tog+
+        '<button class="cbtn b3" data-act="msg" data-id="'+id+'">💬 Mensaje</button>'+
+        '<button class="cbtn b4" data-act="edi" data-id="'+id+'">✏️ Editar</button>'+
+        '<button class="cbtn b5" data-act="del" data-id="'+id+'">🗑</button>'+
+      '</div>';
+    g.appendChild(div);
+  });
+  g.querySelectorAll('[data-act]').forEach(function(b){
+    b.onclick=function(){
+      var id=this.getAttribute('data-id');
+      var act=this.getAttribute('data-act');
+      if(act==='tog'){db.ref('pintorapp/pintores/'+id).update({activo:!pintores[id].activo});toast((pintores[id].activo?'⏸ Desactivado':'✅ Activado'));}
+      else if(act==='msg'){msgId=id;document.getElementById('msg-n').value=pintores[id].nom||'';document.getElementById('msg-t').value=pintores[id].mensaje||'';document.getElementById('m-msg').classList.add('open');}
+      else if(act==='edi'){
+        editId=id;var p=pintores[id];
+        document.getElementById('m-pintor-t').textContent='✏️ Editar pintor';
+        document.getElementById('f-nom').value=p.nom||'';document.getElementById('f-tel').value=p.tel||'';
+        document.getElementById('f-pob').value=p.pob||'';document.getElementById('f-esp').value=p.esp||'Pintura interior i exterior';
+        document.getElementById('f-color').value=p.color||'#2563eb';document.getElementById('f-cad').value=p.caducidad_meses||12;
+        document.getElementById('f-msg').value=p.mensaje||'';document.getElementById('m-pintor').classList.add('open');
+      }
+      else if(act==='del'){if(confirm('¿Eliminar a '+pintores[id].nom+'?')){db.ref('pintorapp/pintores/'+id).remove();toast('🗑 Eliminado');}}
+    };
+  });
+}
+
+function s(n,l,c){return'<div class="stat"><div class="n '+c+'">'+n+'</div><div class="l">'+l+'</div></div>';}
+
+// NUEVO PINTOR
+document.getElementById('btn-np').onclick=function(){
+  editId=null;document.getElementById('m-pintor-t').textContent='➕ Nuevo pintor';
+  ['f-nom','f-tel','f-pob','f-msg'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('m-pintor').classList.add('open');
+};
+document.getElementById('f-cancel').onclick=function(){document.getElementById('m-pintor').classList.remove('open');};
+document.getElementById('f-save').onclick=function(){
+  var nom=document.getElementById('f-nom').value.trim();
+  if(!nom){toast('⚠️ Escribe el nombre');return;}
+  var id=editId||'pintor_'+Date.now();
+  var ex=(editId&&pintores[editId])||{};
+  db.ref('pintorapp/pintores/'+id).set({
+    nom:nom,tel:document.getElementById('f-tel').value.trim(),
+    pob:document.getElementById('f-pob').value.trim(),
+    esp:document.getElementById('f-esp').value,
+    color:document.getElementById('f-color').value,
+    caducidad_meses:parseInt(document.getElementById('f-cad').value),
+    mensaje:document.getElementById('f-msg').value.trim(),
+    activo:ex.activo!==undefined?ex.activo:true,
+    created_at:ex.created_at||new Date().toISOString(),
+    num_presupuestos:ex.num_presupuestos||0
+  });
+  document.getElementById('m-pintor').classList.remove('open');
+  toast(editId?'✅ Actualizado':'✅ Pintor añadido');
+};
+
+// MENSAJE
+document.getElementById('msg-cancel').onclick=function(){document.getElementById('m-msg').classList.remove('open');};
+document.getElementById('msg-save').onclick=function(){
+  db.ref('pintorapp/pintores/'+msgId).update({mensaje:document.getElementById('msg-t').value.trim()});
+  document.getElementById('m-msg').classList.remove('open');toast('💬 Mensaje enviado');
+};
+
+// PACKS
+document.getElementById('btn-pk').onclick=function(){
+  document.getElementById('pk-cli').value='';document.getElementById('pk-tel').value='';
+  document.getElementById('m-pack').classList.add('open');
+};
+document.getElementById('pk-cancel').onclick=function(){document.getElementById('m-pack').classList.remove('open');};
+document.getElementById('pk-save').onclick=function(){
+  var cli=document.getElementById('pk-cli').value.trim();
+  if(!cli){toast('⚠️ Escribe el cliente');return;}
+  var num=parseInt(document.getElementById('pk-num').value);
+  var dur=parseInt(document.getElementById('pk-dur').value);
+  var codes={};
+  for(var i=0;i<num;i++){var c=genCode();codes[c]={estado:'libre',creado:new Date().toISOString(),duracion_meses:dur};}
+  db.ref('pintorapp/packs/pack_'+Date.now()).set({
+    cliente:cli,tel:document.getElementById('pk-tel').value.trim(),
+    num_total:num,duracion_meses:dur,creado:new Date().toISOString(),codigos:codes
+  });
+  document.getElementById('m-pack').classList.remove('open');
+  toast('✅ Pack con '+num+' códigos generado');
+  document.getElementById('tab2').click();
+};
+
+function genCode(){
+  var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r='';
+  for(var i=0;i<10;i++){if(i===4||i===8)r+='-';r+=c[Math.floor(Math.random()*c.length)];}
+  return r;
+}
+
+function renderPacks(){
+  var ks=Object.keys(packs);
+  var tl=0,lib=0,us=0;
+  ks.forEach(function(k){var cs=packs[k].codigos||{};Object.values(cs).forEach(function(c){tl++;if(c.estado==='libre')lib++;else us++;});});
+  document.getElementById('stats2').innerHTML=s(ks.length,'Packs','cy')+s(lib,'Libres','cg')+s(us,'Usados','cr');
+  var g=document.getElementById('grid2');
+  if(!ks.length){g.innerHTML='<div style="text-align:center;color:#444;padding:40px">Sin packs. Pulsa "+ Nuevo pack"</div>';return;}
+  g.innerHTML='';
+  ks.forEach(function(pid){
+    var pk=packs[pid];var cs=pk.codigos||{};var cks=Object.keys(cs);
+    var libres=cks.filter(function(k){return cs[k].estado==='libre';});
+    var pct=Math.round((cks.length-libres.length)/Math.max(cks.length,1)*100);
+    var bc=pct>=90?'#ff4444':pct>=60?'#f5c800':'#00e676';
+    var codesHtml=cks.map(function(c){return'<span class="chip '+(cs[c].estado==='libre'?'libre':'usado')+'">'+c+'</span>';}).join('');
+    var div=document.createElement('div');div.className='pcard';
+    div.innerHTML=
+      '<div class="phdr"><div class="pbdg">🎟</div><div style="flex:1;font-weight:700">'+pk.cliente+'</div>'+
+      (pk.tel?'<div style="font-size:11px;color:#444">'+pk.tel+'</div>':'')+
+      '</div>'+
+      '<div style="font-size:11px;color:#555;margin-bottom:4px">'+libres.length+' libres / '+cks.length+' total · '+pk.duracion_meses+' meses</div>'+
+      '<div class="pbar"><div class="pbar-f" style="width:'+pct+'%;background:'+bc+'"></div></div>'+
+      '<div class="codes">'+codesHtml+'</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'+
+        '<button class="cbtn b3" data-pac="'+pid+'" data-act="copy">📋 Copiar libres</button>'+
+        '<button class="cbtn b1" data-pac="'+pid+'" data-act="wa">📱 WhatsApp</button>'+
+        '<button class="cbtn b5" data-pac="'+pid+'" data-act="del">🗑 Eliminar</button>'+
+      '</div>';
+    g.appendChild(div);
+  });
+  g.querySelectorAll('[data-pac]').forEach(function(b){
+    b.onclick=function(){
+      var pid=this.getAttribute('data-pac');var act=this.getAttribute('data-act');
+      var pk=packs[pid];var cs=pk.codigos||{};
+      var lib=Object.keys(cs).filter(function(k){return cs[k].estado==='libre';});
+      if(act==='copy'){
+        if(!lib.length){toast('⚠️ Sin libres');return;}
+        var txt='🎟 CÓDIGOS PINTORAPP — '+pk.cliente+'\n'+'━'.repeat(20)+'\n';
+        lib.forEach(function(c,i){txt+=(i+1)+'. '+c+'\n';});
+        txt+='━'.repeat(20)+'\nVálidos '+pk.duracion_meses+' meses · wa.me/'+WA;
+        navigator.clipboard.writeText(txt).then(function(){toast('📋 '+lib.length+' códigos copiados');});
+      }else if(act==='wa'){
+        if(!lib.length){toast('⚠️ Sin libres');return;}
+        var msg='🎨 *PINTORAPP*\n🏪 *'+pk.cliente+'*\n🎟 '+lib.length+' llicències · '+pk.duracion_meses+' mesos\n\n';
+        lib.forEach(function(c,i){msg+=(i+1)+'. '+c+'\n';});
+        msg+='\n❓ wa.me/'+WA;
+        var tel=pk.tel?(pk.tel.replace(/\D/g,''):''):'';
+        window.open('https://wa.me/'+(tel?'34'+tel:'')+'?text='+encodeURIComponent(msg),'_blank');
+      }else if(act==='del'){
+        if(confirm('¿Eliminar pack de '+pk.cliente+'?')){db.ref('pintorapp/packs/'+pid).remove();toast('🗑 Eliminado');renderPacks();}
+      }
+    };
+  });
+}
+
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2800);
+}
 </script>
-
-<!-- PACK MODAL -->
-<div class="modal-bg" id="modal-pack">
-  <div class="modal">
-    <h3 id="pack-modal-title" style="color:var(--accent);">🎟 Nuevo pack de licencias</h3>
-    <div class="mf"><label>Cliente (tienda / empresa)</label>
-      <input type="text" id="p-cliente" placeholder="La Botiga del Robert..."></div>
-    <div class="mf"><label>Teléfono / WhatsApp del cliente</label>
-      <input type="tel" id="p-tel" placeholder="973 000 392"></div>
-    <div class="mf"><label>Número de licencias</label>
-      <select id="p-num">
-        <option value="10">Pack 10 licencias</option>
-        <option value="20">Pack 20 licencias</option>
-        <option value="30">Pack 30 licencias</option>
-      </select>
-    </div>
-    <div class="mf"><label>Duración por licencia</label>
-      <select id="p-dur">
-        <option value="12">12 meses (1 año)</option>
-        <option value="6">6 meses</option>
-        <option value="24">24 meses (2 años)</option>
-      </select>
-    </div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="cerrarModalPack()">Cancelar</button>
-      <button class="btn-save" onclick="generarPack()">🎟 Generar códigos</button>
-    </div>
-  </div>
-</div>
-
-<!-- CODE DETAIL MODAL -->
-<div class="modal-bg" id="modal-code">
-  <div class="modal" style="max-width:360px;">
-    <h3 style="color:var(--green);">📋 Código de activación</h3>
-    <div style="background:var(--surface);border-radius:12px;padding:20px;text-align:center;margin:16px 0;">
-      <div id="code-display" style="font-family:var(--mono);font-size:22px;font-weight:800;
-        color:var(--accent);letter-spacing:3px;margin-bottom:8px;"></div>
-      <div id="code-info" style="font-size:12px;color:var(--muted);"></div>
-    </div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="cerrarModalCode()">Cerrar</button>
-      <button class="btn-save" onclick="copiarCode()" style="background:var(--green);color:#0a0a0f;">
-        📋 Copiar código
-      </button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
