@@ -8,7 +8,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:100vh}
-#pgLogin{min-height:100vh;display:flex;align-items:center;justify-content:center}
+#pgLogin{display:none}
 .loginBox{background:#1a1a26;border:2px solid #f5c800;border-radius:16px;padding:40px;width:320px;text-align:center}
 .loginBox h1{color:#f5c800;font-size:20px;margin-bottom:6px}
 .loginBox p{color:#666;font-size:12px;margin-bottom:24px}
@@ -69,21 +69,21 @@ body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:10
 <body>
 <div id="toast"></div>
 
-<div id="pgLogin">
+<div id="pgLogin" style="display:none">
   <div class="loginBox">
     <div style="font-size:40px;margin-bottom:8px">CONSOLA</div>
     <h1>CONSOLA MASTER</h1>
     <p>PintorApp - Panel de control</p>
     <input type="password" id="iClave" placeholder="Clave secreta">
-    <button class="btnY">ENTRAR</button>
+    <button class="btnY" onclick="login()">ENTRAR</button>
     <div id="err">Clave incorrecta</div>
   </div>
 </div>
 
-<div id="pgMain">
+<div id="pgMain" style="display:block">
   <div class="topbar">
     <h2>CONSOLA MASTER</h2>
-    <button class="btnR">Salir</button>
+    <button class="btnR" onclick="logout()">Salir</button>
   </div>
   <div class="tabs">
     <button class="tab sel" id="t1" onclick="tab(1)">Pintores</button>
@@ -152,71 +152,26 @@ body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:10
 <script>
 var K='NachiDacia2342';
 var W='34609321585';
-var P={},PK={},eId=null,mId=null,db=null;
+var P={};var PK={};var eId=null;var mId=null;var db=null;
 
-function $(i){return document.getElementById(i)}
-function toast(m){var t=$('toast');t.textContent=m;t.className='show';setTimeout(function(){t.className=''},2500)}
-function openM(i){$(i).className='ov open'}
-function closeM(i){$(i).className='ov'}
-
-window.addEventListener('load',function(){
-
-$('btnOjo').addEventListener('click',function(){var i=$('iClave');i.type=i.type==='password'?'text':'password'});
-
-$('iClave').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
-
-$('btnEntrar').addEventListener('click',doLogin);
-
-function doLogin(){
-  var v=$('iClave').value;
+function login(){
+  var v=document.getElementById('iClave').value;
   if(v===K){
-    $('pgLogin').style.display='none';
-    $('pgMain').style.display='block';
+    document.getElementById('pgLogin').style.display='none';
+    document.getElementById('pgMain').style.display='block';
     startFB();
   }else{
-    $('lerr').style.display='block';
-    $('iClave').value='';
+    document.getElementById('err').style.display='block';
+    document.getElementById('iClave').value='';
   }
 }
+document.getElementById('iClave').addEventListener('keydown',function(e){if(e.key==='Enter')login();});
 
-$('btnSalir').addEventListener('click',function(){
-  $('pgMain').style.display='none';
-  $('pgLogin').style.display='flex';
-  $('iClave').value='';
-});
-
-$('t1').addEventListener('click',function(){
-  $('v1').style.display='block';$('v2').style.display='none';
-  $('t1').className='tab sel';$('t2').className='tab';
-});
-$('t2').addEventListener('click',function(){
-  $('v1').style.display='none';$('v2').style.display='block';
-  $('t1').className='tab';$('t2').className='tab sel';
-  showPK();
-});
-
-$('btnNP').addEventListener('click',function(){
-  eId=null;$('mPt').textContent='Nuevo pintor';
-  ['pN','pT','pO','pM'].forEach(function(x){$(x).value=''});
-  openM('mP');
-});
-$('bCP').addEventListener('click',function(){closeM('mP')});
-$('bSP').addEventListener('click',saveP);
-
-$('bCM').addEventListener('click',function(){closeM('mMsg')});
-$('bSM').addEventListener('click',function(){
-  if(!db)return;
-  db.ref('pintorapp/pintores/'+mId).update({mensaje:$('mT').value.trim()});
-  closeM('mMsg');toast('Mensaje enviado');
-});
-
-$('btnNK').addEventListener('click',function(){
-  $('kC').value='';$('kT').value='';openM('mK');
-});
-$('bCK').addEventListener('click',function(){closeM('mK')});
-$('bSK').addEventListener('click',savePK);
-
-});
+function logout(){
+  document.getElementById('pgMain').style.display='none';
+  document.getElementById('pgLogin').style.display='flex';
+  document.getElementById('iClave').value='';
+}
 
 function startFB(){
   try{
@@ -230,136 +185,177 @@ function startFB(){
       appId:'1:798799179968:web:14ab31b03e17b8b041bd25'
     });
     db=firebase.database();
-    db.ref('pintorapp/pintores').on('value',function(s){P=s.val()||{};showP()});
-    db.ref('pintorapp/packs').on('value',function(s){PK=s.val()||{}});
-  }catch(e){$('lP').innerHTML='<div class="empty">Error: '+e.message+'</div>'}
+    db.ref('pintorapp/pintores').on('value',function(s){P=s.val()||{};showP();});
+    db.ref('pintorapp/packs').on('value',function(s){PK=s.val()||{};});
+  }catch(e){document.getElementById('lP').innerHTML='<div class="empty">Error: '+e.message+'</div>';}
+}
+
+function tab(n){
+  document.getElementById('v1').style.display=n===1?'block':'none';
+  document.getElementById('v2').style.display=n===2?'block':'none';
+  document.getElementById('t1').className='tab'+(n===1?' sel':'');
+  document.getElementById('t2').className='tab'+(n===2?' sel':'');
+  if(n===2)showPK();
 }
 
 function st(p){
   if(!p.activo)return'ina';
   if(p.caducidad_meses>0&&p.created_at){
-    var e=new Date(p.created_at);
-    e.setMonth(e.getMonth()+parseInt(p.caducidad_meses));
+    var e=new Date(p.created_at);e.setMonth(e.getMonth()+parseInt(p.caducidad_meses));
     if(new Date()>e)return'exp';
   }
   return'act';
 }
 
 function showP(){
-  var l=$('lP'),ks=Object.keys(P);
-  if(!ks.length){l.innerHTML='<div class="empty">Sin pintores. Pulsa + Nuevo pintor</div>';return}
+  var l=document.getElementById('lP');
+  var ks=Object.keys(P);
+  if(!ks.length){l.innerHTML='<div class="empty">Sin pintores</div>';return;}
   var h='';
   ks.forEach(function(id){
-    var p=P[id],s=st(p);
-    var ini=(p.nom||'?').split(' ').map(function(w){return w[0]||''}).join('').substring(0,2).toUpperCase();
+    var p=P[id];var s=st(p);
+    var ini=(p.nom||'?').split(' ').map(function(w){return w[0]||'';}).join('').substring(0,2).toUpperCase();
     var sl=s==='act'?'ACTIVO':s==='exp'?'CADUCADO':'INACTIVO';
+    var sc=s==='act'?'on':'off';
     var tb=s==='act'?
-      '<button class="cb b2" data-tog="'+id+'">Desactivar</button>':
-      '<button class="cb b1" data-tog="'+id+'">Activar</button>';
+      '<button class="b2" onclick="tog(''+id+'')">Desactivar</button>':
+      '<button class="b1" onclick="tog(''+id+'')">Activar</button>';
     h+='<div class="card '+s+'">'+
       '<div class="ctop">'+
         '<div class="av" style="background:'+(p.color||'#2563eb')+'">'+ini+'</div>'+
         '<div style="flex:1"><div class="cn">'+(p.nom||'Sin nombre')+'</div>'+
         '<div class="cs">'+(p.esp||'Pintor')+' - '+(p.pob||'-')+'</div></div>'+
-        '<span class="bdg '+(s==='act'?'on':'off')+'">'+sl+'</span>'+
+        '<span class="bdg '+sc+'">'+sl+'</span>'+
       '</div>'+
-      '<div style="font-size:11px;color:#555;margin-bottom:8px">Tel: <b style="color:#aaa">'+(p.tel||'-')+'</b> | Cad: <b style="color:#aaa">'+(p.caducidad_meses>0?p.caducidad_meses+'m':'inf')+'</b></div>'+
-      (p.mensaje?'<div style="background:#0a0a1f;border-left:2px solid #4cf;padding:6px;font-size:11px;color:#4cf;margin-bottom:7px">'+p.mensaje+'</div>':'')+
+      '<div class="cm">Tel: <b>'+(p.tel||'-')+'</b> Cad: <b>'+(p.caducidad_meses>0?p.caducidad_meses+'m':'inf')+'</b></div>'+
+      (p.mensaje?'<div style="background:#0a0a1f;border-left:2px solid #4cf;padding:6px;font-size:12px;color:#4cf;margin-bottom:8px">'+p.mensaje+'</div>':'')+
       '<div class="cbtns">'+tb+
-        '<button class="cb b3" data-msg="'+id+'">Mensaje</button>'+
-        '<button class="cb b4" data-edi="'+id+'">Editar</button>'+
-        '<button class="cb b2" data-del="'+id+'">Borrar</button>'+
+        '<button class="b3" onclick="openMsg(''+id+'')">Mensaje</button>'+
+        '<button class="b4" onclick="openP(''+id+'')">Editar</button>'+
+        '<button class="b2" onclick="delP(''+id+'')">Borrar</button>'+
       '</div></div>';
   });
   l.innerHTML=h;
-  l.querySelectorAll('[data-tog]').forEach(function(b){b.addEventListener('click',function(){tog(this.getAttribute('data-tog'))})});
-  l.querySelectorAll('[data-msg]').forEach(function(b){b.addEventListener('click',function(){openMsg(this.getAttribute('data-msg'))})});
-  l.querySelectorAll('[data-edi]').forEach(function(b){b.addEventListener('click',function(){editP(this.getAttribute('data-edi'))})});
-  l.querySelectorAll('[data-del]').forEach(function(b){b.addEventListener('click',function(){delP(this.getAttribute('data-del'))})});
 }
 
-function tog(id){if(db)db.ref('pintorapp/pintores/'+id).update({activo:!P[id].activo})}
-function delP(id){if(confirm('Borrar a '+P[id].nom+'?')&&db)db.ref('pintorapp/pintores/'+id).remove()}
-function openMsg(id){mId=id;$('mN').value=P[id].nom||'';$('mT').value=P[id].mensaje||'';openM('mMsg')}
-function editP(id){
-  eId=id;var p=P[id];
-  $('mPt').textContent='Editar pintor';
-  $('pN').value=p.nom||'';$('pT').value=p.tel||'';$('pO').value=p.pob||'';
-  $('pE').value=p.esp||'Pintura interior i exterior';
-  $('pC').value=p.color||'#2563eb';$('pD').value=p.caducidad_meses||12;$('pM').value=p.mensaje||'';
-  openM('mP');
-}
+function tog(id){if(!db)return;db.ref('pintorapp/pintores/'+id).update({activo:!P[id].activo});toast('Hecho');}
+function delP(id){if(!confirm('Borrar?'))return;if(db)db.ref('pintorapp/pintores/'+id).remove();}
 
+function openP(id){
+  eId=id;
+  document.getElementById('mPt').textContent=id?'Editar pintor':'Nuevo pintor';
+  if(id&&P[id]){var p=P[id];
+    document.getElementById('pN').value=p.nom||'';
+    document.getElementById('pT').value=p.tel||'';
+    document.getElementById('pO').value=p.pob||'';
+    document.getElementById('pE').value=p.esp||'Pintura interior i exterior';
+    document.getElementById('pC').value=p.color||'#2563eb';
+    document.getElementById('pD').value=p.caducidad_meses||12;
+    document.getElementById('pM').value=p.mensaje||'';
+  }else{
+    ['pN','pT','pO','pM'].forEach(function(x){document.getElementById(x).value='';});
+  }
+  document.getElementById('mP').className='ov open';
+}
+function closeP(){document.getElementById('mP').className='ov';}
 function saveP(){
-  var n=$('pN').value.trim();
-  if(!n){toast('Escribe el nombre');return}
-  if(!db){toast('Sin Firebase');return}
+  var n=document.getElementById('pN').value.trim();
+  if(!n){toast('Escribe el nombre');return;}
+  if(!db){toast('Sin Firebase');return;}
   var id=eId||'pintor_'+Date.now();
   var ex=(eId&&P[eId])||{};
   db.ref('pintorapp/pintores/'+id).set({
-    nom:n,tel:$('pT').value.trim(),pob:$('pO').value.trim(),
-    esp:$('pE').value,color:$('pC').value,
-    caducidad_meses:parseInt($('pD').value),
-    mensaje:$('pM').value.trim(),
+    nom:n,tel:document.getElementById('pT').value.trim(),
+    pob:document.getElementById('pO').value.trim(),
+    esp:document.getElementById('pE').value,
+    color:document.getElementById('pC').value,
+    caducidad_meses:parseInt(document.getElementById('pD').value),
+    mensaje:document.getElementById('pM').value.trim(),
     activo:ex.activo!==undefined?ex.activo:true,
     created_at:ex.created_at||new Date().toISOString(),
     num_presupuestos:ex.num_presupuestos||0
   });
-  closeM('mP');toast(eId?'Actualizado':'Pintor anadido');
+  closeP();toast(eId?'Actualizado':'Pintor anadido');
 }
 
-function showPK(){
-  var l=$('lK'),ks=Object.keys(PK);
-  if(!ks.length){l.innerHTML='<div class="empty">Sin packs. Pulsa + Nuevo pack</div>';return}
-  var h='';
-  ks.forEach(function(pid){
-    var pk=PK[pid],cs=pk.codigos||{},cks=Object.keys(cs);
-    var lib=cks.filter(function(k){return cs[k].estado==='libre'});
-    var ch=cks.map(function(c){return'<span class="chip '+(cs[c].estado==='libre'?'libre':'usado')+'">'+c+'</span>'}).join('');
-    h+='<div class="pcard"><div style="font-weight:bold;color:#f5c800;font-size:13px;margin-bottom:6px">'+pk.cliente+' - '+lib.length+'/'+cks.length+' libres</div>'+
-      '<div class="codes">'+ch+'</div>'+
-      '<div style="display:flex;gap:5px;margin-top:7px">'+
-        '<button class="cb b3" data-copy="'+pid+'">Copiar libres</button>'+
-        '<button class="cb b2" data-delpk="'+pid+'">Borrar</button>'+
-      '</div></div>';
-  });
-  l.innerHTML=h;
-  l.querySelectorAll('[data-copy]').forEach(function(b){b.addEventListener('click',function(){copyLib(this.getAttribute('data-copy'))})});
-  l.querySelectorAll('[data-delpk]').forEach(function(b){b.addEventListener('click',function(){delPK(this.getAttribute('data-delpk'))})});
+function openMsg(id){
+  mId=id;
+  document.getElementById('mN').value=P[id].nom||'';
+  document.getElementById('mT').value=P[id].mensaje||'';
+  document.getElementById('mMsg').className='ov open';
+}
+function closeMsg(){document.getElementById('mMsg').className='ov';}
+function sendMsg(){
+  if(!db)return;
+  db.ref('pintorapp/pintores/'+mId).update({mensaje:document.getElementById('mT').value.trim()});
+  closeMsg();toast('Mensaje enviado');
 }
 
-function savePK(){
-  var c=$('kC').value.trim();
-  if(!c){toast('Escribe el cliente');return}
-  if(!db){toast('Sin Firebase');return}
-  var n=parseInt($('kN').value),d=parseInt($('kD').value),cs={};
-  for(var i=0;i<n;i++){var x=gc();cs[x]={estado:'libre',creado:new Date().toISOString(),duracion_meses:d}}
+function openPk(){document.getElementById('kC').value='';document.getElementById('kT').value='';document.getElementById('mK').className='ov open';}
+function closePk(){document.getElementById('mK').className='ov';}
+function savePk(){
+  var c=document.getElementById('kC').value.trim();
+  if(!c){toast('Escribe el cliente');return;}
+  if(!db){toast('Sin Firebase');return;}
+  var n=parseInt(document.getElementById('kN').value);
+  var d=parseInt(document.getElementById('kD').value);
+  var cs={};
+  for(var i=0;i<n;i++){var x=gc();cs[x]={estado:'libre',creado:new Date().toISOString(),duracion_meses:d};}
   db.ref('pintorapp/packs/pack_'+Date.now()).set({
-    cliente:c,tel:$('kT').value.trim(),num_total:n,duracion_meses:d,
-    creado:new Date().toISOString(),codigos:cs
+    cliente:c,tel:document.getElementById('kT').value.trim(),
+    num_total:n,duracion_meses:d,creado:new Date().toISOString(),codigos:cs
   });
-  closeM('mK');toast('Pack con '+n+' codigos generado');$('t2').click();
+  closePk();toast('Pack con '+n+' codigos generado');tab(2);
 }
 
 function gc(){
   var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r='';
-  for(var i=0;i<10;i++){if(i===4||i===8)r+='-';r+=c[Math.floor(Math.random()*c.length)]}
+  for(var i=0;i<10;i++){if(i===4||i===8)r+='-';r+=c[Math.floor(Math.random()*c.length)];}
   return r;
 }
 
+function showPK(){
+  var l=document.getElementById('lK');
+  var ks=Object.keys(PK);
+  if(!ks.length){l.innerHTML='<div class="empty">Sin packs</div>';return;}
+  var h='';
+  ks.forEach(function(pid){
+    var pk=PK[pid];var cs=pk.codigos||{};var cks=Object.keys(cs);
+    var lib=cks.filter(function(k){return cs[k].estado==='libre';});
+    var ch=cks.map(function(c){return'<span class="code '+(cs[c].estado==='libre'?'libre':'usado')+'">'+c+'</span>';}).join('');
+    h+='<div class="pcard"><div style="font-weight:bold;color:#f5c800;margin-bottom:6px">'+pk.cliente+' - '+lib.length+'/'+cks.length+' libres</div>'+
+      '<div class="codes">'+ch+'</div>'+
+      '<div style="display:flex;gap:6px;margin-top:8px">'+
+        '<button class="b3" onclick="copyLib(''+pid+'')">Copiar libres</button>'+
+        '<button class="b2" onclick="delPk(''+pid+'')">Borrar</button>'+
+      '</div></div>';
+  });
+  l.innerHTML=h;
+}
+
 function copyLib(pid){
-  var pk=PK[pid],cs=pk.codigos||{};
-  var lib=Object.keys(cs).filter(function(k){return cs[k].estado==='libre'});
-  if(!lib.length){toast('Sin libres');return}
+  var pk=PK[pid];var cs=pk.codigos||{};
+  var lib=Object.keys(cs).filter(function(k){return cs[k].estado==='libre';});
+  if(!lib.length){toast('Sin libres');return;}
   var txt='CODIGOS PINTORAPP - '+pk.cliente+'
 ';
   lib.forEach(function(c,i){txt+=(i+1)+'. '+c+'
-'});
+';});
   txt+='Validos '+pk.duracion_meses+' meses';
-  navigator.clipboard.writeText(txt).then(function(){toast(lib.length+' codigos copiados')});
+  navigator.clipboard.writeText(txt).then(function(){toast(lib.length+' codigos copiados');});
 }
-function delPK(pid){if(confirm('Borrar pack?')&&db){db.ref('pintorapp/packs/'+pid).remove();showPK()}}
 
+function delPk(pid){
+  if(!confirm('Borrar pack?'))return;
+  if(db)db.ref('pintorapp/packs/'+pid).remove();
+  toast('Pack borrado');showPK();
+}
+
+function toast(m){
+  var t=document.getElementById('toast');
+  t.textContent=m;t.className='show';
+  setTimeout(function(){t.className='';},2500);
+}
 </script>
 </body>
 </html>
