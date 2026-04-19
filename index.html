@@ -12,7 +12,7 @@ body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:10
 .loginBox{background:#1a1a26;border:2px solid #f5c800;border-radius:16px;padding:40px;width:320px;text-align:center}
 .loginBox h1{color:#f5c800;font-size:20px;margin-bottom:6px}
 .loginBox p{color:#666;font-size:12px;margin-bottom:24px}
-.loginBox input{}
+.loginBox input{width:100%;padding:12px;background:#000;border:2px solid #333;border-radius:8px;color:#fff;font-size:18px;text-align:center;letter-spacing:3px}
 .loginBox input:focus{outline:none;border-color:#f5c800}
 .btnY{width:100%;padding:13px;margin-top:12px;background:#f5c800;color:#000;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer}
 #err{color:#f44;font-size:13px;margin-top:8px;display:none}
@@ -74,11 +74,8 @@ body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:10
     <div style="font-size:40px;margin-bottom:8px">CONSOLA</div>
     <h1>CONSOLA MASTER</h1>
     <p>PintorApp - Panel de control</p>
-    <div style="position:relative">
-      <input type="password" id="iClave" placeholder="Clave secreta" style="width:100%;padding:12px;padding-right:44px;background:#000;border:2px solid #333;border-radius:8px;color:#fff;font-size:18px;text-align:center;letter-spacing:3px">
-      <button onclick="toggleOjo()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:20px;color:#888" id="btnOjo">👁</button>
-    </div>
-    <button class="btnY" onclick="login()">ENTRAR</button>
+    <input type="password" id="iClave" placeholder="Clave secreta">
+    <button class="btnY" onclick="(function(){var v=document.getElementById('iClave').value;if(v=='NachiDacia2342'){document.getElementById('pgLogin').style.display='none';document.getElementById('pgMain').style.display='block';startFB();}else{document.getElementById('err').style.display='block';document.getElementById('iClave').value='';}})()">ENTRAR</button>
     <div id="err">Clave incorrecta</div>
   </div>
 </div>
@@ -170,12 +167,6 @@ function login(){
 }
 document.getElementById('iClave').addEventListener('keydown',function(e){if(e.key==='Enter')login();});
 
-function toggleOjo(){
-  var inp=document.getElementById('iClave');
-  var btn=document.getElementById('btnOjo');
-  if(inp.type==='password'){inp.type='text';btn.textContent='X';}
-  else{inp.type='password';btn.textContent='O';}
-}
 function logout(){
   document.getElementById('pgMain').style.display='none';
   document.getElementById('pgLogin').style.display='flex';
