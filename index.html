@@ -75,7 +75,7 @@ body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:10
     <h1>CONSOLA MASTER</h1>
     <p>PintorApp - Panel de control</p>
     <input type="password" id="iClave" placeholder="Clave secreta">
-    <button class="btnY" onclick="(function(){var v=document.getElementById('iClave').value;if(v=='NachiDacia2342'){document.getElementById('pgLogin').style.display='none';document.getElementById('pgMain').style.display='block';startFB();}else{document.getElementById('err').style.display='block';document.getElementById('iClave').value='';}})()">ENTRAR</button>
+    <button class="btnY" onclick="login()">ENTRAR</button>
     <div id="err">Clave incorrecta</div>
   </div>
 </div>
@@ -83,18 +83,18 @@ body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:10
 <div id="pgMain">
   <div class="topbar">
     <h2>CONSOLA MASTER</h2>
-    <button class="btnR" onclick="logout()">Salir</button>
+    <button class="btnR" onclick="document.getElementById('pgMain').style.display='none';document.getElementById('pgLogin').style.display='flex';document.getElementById('iClave').value='';">Salir</button>
   </div>
   <div class="tabs">
-    <button class="tab sel" id="t1" onclick="tab(1)">Pintores</button>
-    <button class="tab" id="t2" onclick="tab(2)">Packs</button>
+    <button class="tab sel" id="t1" onclick="document.getElementById('v1').style.display='block';document.getElementById('v2').style.display='none';document.getElementById('t1').className='tab sel';document.getElementById('t2').className='tab';">Pintores</button>
+    <button class="tab" id="t2" onclick="document.getElementById('v1').style.display='none';document.getElementById('v2').style.display='block';document.getElementById('t1').className='tab';document.getElementById('t2').className='tab sel';showPK();">Packs</button>
   </div>
   <div class="wrap" id="v1">
-    <div class="hdr"><span>Pintores registrados</span><button class="btnG" onclick="openP(null)">+ Nuevo pintor</button></div>
+    <div class="hdr"><span>Pintores registrados</span><button class="btnG" onclick="document.getElementById('mP').className='ov open';document.getElementById('mPt').textContent='Nuevo pintor';['pN','pT','pO','pM'].forEach(function(x){document.getElementById(x).value='';});eId=null;">+ Nuevo pintor</button></div>
     <div id="lP"><div class="empty">Conectando...</div></div>
   </div>
   <div class="wrap" id="v2" style="display:none">
-    <div class="hdr"><span>Packs de licencias</span><button class="btnG" onclick="openPk()">+ Nuevo pack</button></div>
+    <div class="hdr"><span>Packs de licencias</span><button class="btnG" onclick="document.getElementById('kC').value='';document.getElementById('kT').value='';document.getElementById('mK').className='ov open';">+ Nuevo pack</button></div>
     <div id="lK"><div class="empty">Sin packs</div></div>
   </div>
 </div>
@@ -122,7 +122,7 @@ body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:10
       </select>
     </div>
     <div class="f"><label>Mensaje</label><textarea id="pM" placeholder="Bienvenido..."></textarea></div>
-    <div class="mbtns"><button class="bC" onclick="closeP()">Cancelar</button><button class="bS" onclick="saveP()">Guardar</button></div>
+    <div class="mbtns"><button class="bC" onclick="document.getElementById('mP').className='ov';">Cancelar</button><button class="bS" onclick="saveP()">Guardar</button></div>
   </div>
 </div>
 
@@ -131,7 +131,7 @@ body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:10
     <h3 style="color:#4cf">Mensaje</h3>
     <div class="f"><label>Pintor</label><input type="text" id="mN" disabled style="opacity:.5"></div>
     <div class="f"><label>Mensaje</label><textarea id="mT" placeholder="Aviso..."></textarea></div>
-    <div class="mbtns"><button class="bC" onclick="closeMsg()">Cancelar</button><button class="bS" onclick="sendMsg()" style="background:#4cf;color:#000">Enviar</button></div>
+    <div class="mbtns"><button class="bC" onclick="document.getElementById('mMsg').className='ov';">Cancelar</button><button class="bS" onclick="sendMsg()" style="background:#4cf;color:#000">Enviar</button></div>
   </div>
 </div>
 
@@ -142,7 +142,7 @@ body{font-family:Arial,sans-serif;background:#0a0a0f;color:#f0f0f8;min-height:10
     <div class="f"><label>Telefono</label><input type="tel" id="kT" placeholder="973 000 392"></div>
     <div class="f"><label>Licencias</label><select id="kN"><option value="10">10</option><option value="20">20</option><option value="30">30</option></select></div>
     <div class="f"><label>Duracion</label><select id="kD"><option value="12" selected>12 meses</option><option value="6">6 meses</option><option value="24">24 meses</option></select></div>
-    <div class="mbtns"><button class="bC" onclick="closePk()">Cancelar</button><button class="bS" onclick="savePk()">Generar</button></div>
+    <div class="mbtns"><button class="bC" onclick="document.getElementById('mK').className='ov';">Cancelar</button><button class="bS" onclick="savePk()">Generar</button></div>
   </div>
 </div>
 
